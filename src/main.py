@@ -1,4 +1,6 @@
+import configparser
 import os
+from os.path import exists
 
 from typing import Optional
 from pathlib import Path
@@ -13,21 +15,34 @@ from simulation.manufacturing import Manufacturing
 from schemas import DummyMachine
 
 app = FastAPI()
-
-class Item(BaseModel):
-    name: str
+config = configparser.ConfigParser()
+configPath = os.getcwd() + os.path.normpath('/src/settings.ini')
+if exists(configPath):
+    config.read(configPath)
+else:    
+    config.add_section('default')
+    config.add_section('network')
+    config.set('network', 'port', '5000')
+    config.set('network', 'host', '127.0.0.1')
 
 
 @app.put("/")
-def root(item: Item):
-    return item
+def root(response: Response):
+    """ check base status of API """
+    response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    if exists(os.getcwd() + os.path.normpath('/data')):
+        response.status_code = status.HTTP_200_OK
+    body = {
+        "API Version": config.get('default', 'version'),
+        "Status": response.status_code
+    }
+    return body
 
 
 @app.put("/simulate/coating/{product_id}")
 def start_simulation(product_id: str, dummyMachine: DummyMachine, response: Response):
     # replace this with Database lookup
     path = Path(os.getcwd() + os.path.normpath('/data/' + product_id))
-    #machine = Machine(dummyMachine.machineName, dummyMachine.cph, dummyMachine.nozHeads, dummyMachine.SMD, dummyMachine.offsets)
     data = DataLoader(path)
     machine = Machine(dummyMachine)
     manufacturing = Manufacturing(data(), machine)
@@ -49,9 +64,6 @@ def start_simulation(product_id: str, dummyMachine: DummyMachine, response: Resp
     simulationData = manufacturing(plotPCB=True)
     return simulationData
 
-@app.put("/items/{item_id}")
-def update_item(item_id: int, item: Item):
-    return {"item_name": item.name, "item_id": item_id}
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=5000, log_level="debug", reload=True)
+    uvicorn.run("main:app", host=config.get('network', 'host'), port=config.getint('network', 'port'), log_level="debug", reload=True)
