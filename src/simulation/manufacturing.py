@@ -184,53 +184,32 @@ class Manufacturing():
       'plot_y': self.plotting_y
     }
 
-  def __call__(self, multiPickOption: bool = True, plotPCB: bool = False, multithread: bool = False, *args: any, **kwds: any) -> (float | dict):
+  def __call__(self, multiPickOption: bool = True, plotPCB: bool = False, *args: any, **kwds: any) -> (float | dict):
     """ Start the assembly simulation """
     self.multiPickOption = multiPickOption
-    # for offset_index, offset_row in self.offsets.iterrows():
-    if multithread == True:
-      pool = Pool(len(self.offsets))
-      pool_data = pool.map(self.calcTime, self.offsets)
-      pool.close()
-      pool.join()
-      time = 0
-      plotX = []
-      plotY = []
-      for i in pool_data:
-        time = time + i['time']
-        plotX.append(i['plot_x'])
-        plotY.append(i['plot_y'])
-      if plotPCB == True:
-        return {
-          'time': time,
-          'plot_x': list(itertools.chain.from_iterable(plotX)),
-          'plot_y': list(itertools.chain.from_iterable(plotY))
-        }
-      return time
-    else:
-      time = 0
-      plotX = []
-      plotY = []
-      import time as tm
-      start_time = tm.time()
-      with concurrent.futures.ThreadPoolExecutor() as executor:
-        for i in self.offsets:
-          
-          future = executor.submit(self.calcTime, i)
-          iter_data = future.result()
+    time = 0
+    plotX = []
+    plotY = []
+    import time as tm
+    start_time = tm.time()
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+      for i in self.offsets:
+        
+        future = executor.submit(self.calcTime, i)
+        iter_data = future.result()
 
-          
-          time = time + iter_data['time']
-          plotX.append(iter_data['plot_x'])
-          plotY.append(iter_data['plot_y'])
-      print("--- %s seconds ---" % (tm.time() - start_time))
-      if plotPCB == True:
-        return {
-          'time': time,
-          'plot_x': list(itertools.chain.from_iterable(plotX)),
-          'plot_y': list(itertools.chain.from_iterable(plotY))
-        }
-      return time
+        
+        time = time + iter_data['time']
+        plotX.append(iter_data['plot_x'])
+        plotY.append(iter_data['plot_y'])
+    print("--- %s seconds ---" % (tm.time() - start_time))
+    if plotPCB == True:
+      return {
+        'time': time,
+        'plot_x': list(itertools.chain.from_iterable(plotX)),
+        'plot_y': list(itertools.chain.from_iterable(plotY))
+      }
+    return time
   
   def coating(self):
     """ simulates the time for coating a PCB """
