@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from collections import deque
 from pathlib import Path
 from multiprocessing import Pool
+import concurrent.futures
 PACKAGE_PARENT = '../'
 SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
@@ -210,11 +211,19 @@ class Manufacturing():
       time = 0
       plotX = []
       plotY = []
-      for i in self.offsets:
-        iter_data = self.calcTime(i)
-        time = time + iter_data['time']
-        plotX.append(iter_data['plot_x'])
-        plotY.append(iter_data['plot_y'])
+      import time as tm
+      start_time = tm.time()
+      with concurrent.futures.ThreadPoolExecutor() as executor:
+        for i in self.offsets:
+          
+          future = executor.submit(self.calcTime, i)
+          iter_data = future.result()
+
+          
+          time = time + iter_data['time']
+          plotX.append(iter_data['plot_x'])
+          plotY.append(iter_data['plot_y'])
+      print("--- %s seconds ---" % (tm.time() - start_time))
       if plotPCB == True:
         return {
           'time': time,
