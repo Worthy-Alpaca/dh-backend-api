@@ -4,7 +4,7 @@ from os.path import exists
 
 from pathlib import Path
 
-from fastapi import FastAPI, Response, status
+from fastapi import FastAPI, Response, status, Request
 import uvicorn
 
 from data.dataloader import DataLoader
@@ -25,7 +25,7 @@ else:
 
 
 @app.put("/")
-def root(response: Response):
+def root(response: Response, request: Request):
     """check base status of API"""
     response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     if exists(os.getcwd() + os.path.normpath("/data")):
@@ -33,6 +33,7 @@ def root(response: Response):
     body = {
         "API Version": config.get("default", "version"),
         "Status": response.status_code,
+        "Headers": request.headers,
     }
     return body
 
@@ -61,9 +62,24 @@ def startSimulation(productId: str, dummyMachine: DummyMachine, response: Respon
         response.status_code = status.HTTP_404_NOT_FOUND
         return response
     machine = Machine(dummyMachine)
-    manufacturing = Manufacturing(data(), machine)
-    simulationData = manufacturing(plotPCB=True)
+    try:
+        manufacturing = Manufacturing(data(), machine)
+        simulationData = manufacturing(plotPCB=True)
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        body = {"error": e}
+        return body
     return simulationData
+
+
+@app.get("/predict/order/")
+async def predictOrder(request: Request, response: Response):
+    request.body()
+    print(request.query_params.get("startdate"))
+    print(request.query_params.get("enddate"))
+    """startDate = startDate  # convert to datetime
+    endDate = endDate  # convert to datetime
+    return {"startDate": startDate, "endDate": endDate}"""
 
 
 if __name__ == "__main__":
