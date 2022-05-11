@@ -10,7 +10,7 @@ class DataLoader:
     `returns:` (`data`, `components`, `offsets`)
     """
 
-    def __init__(self, data_folder, separator: str = ","):
+    def __init__(self, data_folder: Path, separator: str = ","):
         matchers = ["Cmp", "Kyu", "Tou"]
         matching = [s for s in os.listdir(data_folder) if any(xs in s for xs in matchers)]
         global_string = os.path.normpath(
@@ -20,7 +20,6 @@ class DataLoader:
 
         for i in matching:
             skip = -1
-            success = False
             while True:
                 skip = skip + 1
 
@@ -80,6 +79,10 @@ class DataLoader:
         # replace commas with decimal points
         data["X"] = data["X"].replace({",": "."}, regex=True).astype(float)
         data["Y"] = data["Y"].replace({",": "."}, regex=True).astype(float)
+
+        components_data["FeedStyle"] = components_data["FeedStyle"].replace(
+            {"^ST-F$": "ST-FL", "^ST-R$": "ST-RL"}, regex=True
+        )
 
         # calculate the mean of X and Y acceleration
         components_data["mean_acceleration"] = components_data[
