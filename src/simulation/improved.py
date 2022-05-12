@@ -84,7 +84,7 @@ class ManufacturingImproved:
         path_length = math.sqrt(vector_AB[0] ** 2 + vector_AB[1] ** 2)
         return path_length / velocity
 
-    def calcTime(self, offset_row: tuple):
+    def calcTime(self, offset_row: tuple, multiPickOption: bool = True):
         """
         Calculates the assembly time for a given offset
         """
@@ -93,3 +93,32 @@ class ManufacturingImproved:
         plotting_x = list
         plotting_y = list
         mulitPick = deque()
+
+        for index, row in self.data.iterrows():
+
+            lookupTable = self.components[self.components["index"].str.match(row.Code)]
+
+            cart_coordinates = self.feedercarts[lookupTable.FeedStyle.max()]
+
+            location_vectorA = (
+                int(cart_coordinates[0]) + (lookupTable.ST_No.max() * 20),
+                int(cart_coordinates[1]),
+            )
+
+            location_vectorB = (
+                (row.X + self.OFFSET_X + offset_row[0]),
+                (row.Y + self.OFFSET_Y + offset_row[1]),
+            )
+
+            plot_coordinates = ((row.X + offset_row[0]), (row.Y + offset_row[1]))
+
+            velocity = lookupTable.mean_acceleration.max()
+
+            DROPOFF = (lookupTable.Dropff.max() / 1000) * 0.1
+
+            if multiPickOption == False:
+                path_length = self.__calcVector(location_vectorA, self.CHECKPOINT, velocity)
+                checkpoint = self.__calcVector(self.CHECKPOINT, location_vectorB, velocity)
+                TIME = path_length + checkpoint + DROPOFF + TIME
+
+                next_index = index + 1
