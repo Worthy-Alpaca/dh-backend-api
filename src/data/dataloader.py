@@ -45,6 +45,7 @@ class DataLoader:
             "Component Code",
             "Placement(Acceleration):X",
             "Placement(Acceleration):Y",
+            "Placement(Acceleration):Z",
             "Priority Nozzle No.",
         ]
         neededColumns_Feeder = ["Component Code", "FeedStyle", "ST No."]
@@ -72,6 +73,7 @@ class DataLoader:
                 "Component Code": "index",
                 "Priority Nozzle No.": "Nozzle_No",
                 "ST No.": "ST_No",
+                "Placement(Acceleration):Z": "Dropoff",
             }
         )
         components_feeder_data = components_feeder_data.rename(columns={"Component Code": "index"})
@@ -131,9 +133,22 @@ class DataLoader:
         components = components.drop(["Component Code"], axis=1)
         components["mean_acceleration"] = components["mean_acceleration"].fillna(1000.0)
 
+        def encode(x):
+            if x == "Fiducial":
+                return 0
+            elif x == "Multiple Pickup":
+                return 1
+            elif x == "End Multiple Pickup":
+                return 2
+            elif x == "Single Pickup":
+                return 3
+
+        # data["Task"] = data["Task"].apply(lambda x: encode(x))
+
         self.data = data
         self.components = components
         self.offsets = offsetlist
+        print(data.info())
         return (data, components, offsetlist)
 
 
