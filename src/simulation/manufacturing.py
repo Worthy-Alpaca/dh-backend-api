@@ -16,7 +16,7 @@ from simulation.machine import Machine
 global XMOD
 XMOD = 1
 RANDOM_PROBLEMS = (0, 0)
-DROPOFF = 0.1
+# DROPOFF = 0.1
 PICKUP = 0.1
 
 
@@ -89,7 +89,11 @@ class Manufacturing:
                 (row.Y + self.OFFSET_Y + offset_row[1]),
             )
             plot_coordinates = ((row.X + offset_row[0]), (row.Y + offset_row[1]))
-            velocity = self.machine.velocity * (lookupTable.mean_acceleration.max() / 1000)
+            velocity = (
+                lookupTable.mean_acceleration.max()
+            )  # self.machine.velocity  # * (lookupTable.mean_acceleration.max() / 1000)
+
+            DROPOFF = (lookupTable.Dropoff.max() / 1000) * 0.1
 
             if self.multiPickOption == True:
                 # picking components with multiple heads at once
