@@ -13,9 +13,7 @@ class DataLoader:
     def __init__(self, data_folder: Path, separator: str = ","):
         matchers = ["Cmp", "Kyu", "Tou"]
         matching = [s for s in os.listdir(data_folder) if any(xs in s for xs in matchers)]
-        global_string = os.path.normpath(
-            os.path.join(data_folder, "../global/Components width.csv")
-        )
+        global_string = Path(os.getcwd() + os.path.normpath("/data/global/Components width.csv"))
         self.global_Feeder_Data = pd.read_csv(global_string, sep=";")
 
         for i in matching:
@@ -148,7 +146,6 @@ class DataLoader:
         self.data = data
         self.components = components
         self.offsets = offsetlist
-        print(data.info())
         return (data, components, offsetlist)
 
 
