@@ -8,6 +8,8 @@ from fastapi import FastAPI, Response, status, Request
 import uvicorn
 
 from data.dataloader import DataLoader
+from data.datawrangler import MachineDataLoader
+from data.datawrangler import DataWrangler
 from simulation.machine import Machine
 from simulation.manufacturing import Manufacturing
 from schemas import DummyMachine
@@ -22,9 +24,10 @@ else:
     config.add_section("network")
     config.set("network", "port", "5000")
     config.set("network", "host", "127.0.0.1")
+    config.set("network", "basepath", "/api/v1/")
 
 
-@app.put("/")
+@app.put(config.get("network", "basepath") + "/")
 def root(response: Response, request: Request):
     """check base status of API"""
     response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -38,11 +41,11 @@ def root(response: Response, request: Request):
     return body
 
 
-@app.put("/simulate/coating/{productId}")
+@app.put(config.get("network", "basepath") + "/simulate/coating/{productId}")
 def startSimulation(productId: str, dummyMachine: DummyMachine, response: Response):
     """endpoint to calculate the coating time for a given product"""
     # replace this with Database lookup
-    path = Path(os.getcwd() + os.path.normpath("/data/" + productId))
+    path = Path(os.getcwd() + os.path.normpath("/data/programms/" + productId + "/" + "/m20"))
     data = DataLoader(path)
     machine = Machine(dummyMachine)
     manufacturing = Manufacturing(data(), machine)
@@ -50,17 +53,19 @@ def startSimulation(productId: str, dummyMachine: DummyMachine, response: Respon
     return {"time": simulationData}
 
 
-@app.put("/simulate/manufacturing/{productId}")
+@app.put(config.get("network", "basepath") + "/simulate/manufacturing/{productId}")
 def startSimulation(productId: str, dummyMachine: DummyMachine, response: Response):
     """endpoint to calculate the manufacturing time for a given product"""
     # replace this with Database lookup
-    path = Path(os.getcwd() + os.path.normpath("/data/" + productId))
-
-    try:
+    path = Path(
+        os.getcwd() + os.path.normpath("/data/programms/" + productId + "/" + dummyMachine.machine)
+    )
+    data = DataLoader(path)
+    """try:
         data = DataLoader(path)
     except:
         response.status_code = status.HTTP_404_NOT_FOUND
-        return response
+        return response"""
     machine = Machine(dummyMachine)
     try:
         manufacturing = Manufacturing(data(), machine)
@@ -72,14 +77,30 @@ def startSimulation(productId: str, dummyMachine: DummyMachine, response: Respon
     return simulationData
 
 
-@app.get("/predict/order/")
+@app.get(config.get("network", "basepath") + "/predict/order/")
 async def predictOrder(request: Request, response: Response):
     request.body()
     print(request.query_params.get("startdate"))
     print(request.query_params.get("enddate"))
-    """startDate = startDate  # convert to datetime
-    endDate = endDate  # convert to datetime
-    return {"startDate": startDate, "endDate": endDate}"""
+
+
+@app.get(config.get("network", "basepath") + "/data/machinedata")
+def getMachineData(response: Response):
+    try:
+        data = MachineDataLoader()
+    except:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return response
+
+    return data.returnData()
+
+
+@app.get(config.get("network", "basepath") + "/data/options")
+def getOptions():
+    # replace with DB lookup for all possible programms
+    path = Path(os.getcwd() + os.path.normpath("/data/programms"))
+
+    return {"programms": os.listdir(path)}
 
 
 if __name__ == "__main__":
