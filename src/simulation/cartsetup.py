@@ -1,15 +1,18 @@
 import numpy as np
 from pathlib import Path
 from data.dataloader import DataLoader
+import random
 
 
 class CartSetup:
-    def __init__(self, data):
+    def __init__(self, data: tuple, randomInterruptMin: int = 0, randomInterruptMax: int = 30):
         components = data[1]
         feedcart = {}
         for i in components["FeedStyle"].unique():
             feedcart[i] = components.loc[components["FeedStyle"] == i]
 
+        self.randomInterruptMin = randomInterruptMin
+        self.randomInterruptMax = randomInterruptMax
         self.feedcart = {k: v for k, v in feedcart.items() if k == k}
 
     def __call__(self):
@@ -22,7 +25,11 @@ class CartSetup:
             print(f"Setting up Cart {cart} with {len(self.feedcart[key])} components")
             complexity = len(self.feedcart[key]) / 36
             for i in range(len(self.feedcart[key])):
-                time = (60 + np.random.randint(0, 30) * complexity + 9.8) + time
+                time = (
+                    60
+                    + random.randint(self.randomInterruptMin, self.randomInterruptMax) * complexity
+                    + 9.8
+                ) + time
             print(f"Needed time: {time / 60} min")
 
         return time
