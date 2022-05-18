@@ -97,7 +97,7 @@ class MachineDataLoader:
 
         for i in path.iterdir():
 
-            df = pd.read_csv(i, encoding="unicode_escape")
+            df = pd.read_csv(i, encoding="unicode_escape", skiprows=1)
             df = df[["No.", "Date", "Component Code", "Fiducial#", "Offset"]]
             df = df.dropna()
             df = df.iloc[:-1, :]
@@ -109,12 +109,16 @@ class MachineDataLoader:
         concatDataframe["Date"] = pd.to_datetime(concatDataframe["Date"], errors="coerce")
         concatDataframe["Offset"] = concatDataframe["Offset"].astype(int)
 
+        # concatDataframe = concatDataframe.sort_values(by="Date", inplace=True)
+        concatDataframe.to_csv(os.getcwd() + "test.csv")
         for n, g in concatDataframe.groupby("Fiducial#"):
+            print(g)
             list_df.append(g)
 
         prev = []
         nxt = []
-
+        # print(list_df)
+        # return
         for i, v in enumerate(list_df):
             if i + 1 >= len(list_df):
                 break
@@ -148,6 +152,7 @@ class MachineDataLoader:
             output = pd.concat([output, dataDict], ignore_index=True)
 
         self.data = output
+        print(output)
 
     def returnData(self) -> pd.DataFrame:
         return self.data.to_dict()
