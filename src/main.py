@@ -10,6 +10,7 @@ import uvicorn
 from data.dataloader import DataLoader
 from data.datawrangler import MachineDataLoader
 from data.datawrangler import DataWrangler
+from simulation.cartsetup import CartSetup
 from simulation.machine import Machine
 from simulation.manufacturing import Manufacturing
 from schemas import DummyMachine
@@ -41,7 +42,7 @@ def root(response: Response, request: Request):
     return body
 
 
-@app.put(config.get("network", "basepath") + "/simulate/coating/{productId}")
+@app.put(config.get("network", "basepath") + "/simulate/coating/")
 def startSimulation(productId: str, dummyMachine: DummyMachine, response: Response):
     """endpoint to calculate the coating time for a given product"""
     # replace this with Database lookup
@@ -53,7 +54,7 @@ def startSimulation(productId: str, dummyMachine: DummyMachine, response: Respon
     return {"time": simulationData}
 
 
-@app.put(config.get("network", "basepath") + "/simulate/manufacturing/{productId}")
+@app.put(config.get("network", "basepath") + "/simulate/manufacturing/")
 def startSimulation(productId: str, dummyMachine: DummyMachine, response: Response):
     """endpoint to calculate the manufacturing time for a given product"""
     # replace this with Database lookup
@@ -75,6 +76,16 @@ def startSimulation(productId: str, dummyMachine: DummyMachine, response: Respon
         body = {"error": e}
         return body
     return simulationData
+
+
+@app.get(config.get("network", "basepath") + "/simulate/setup")
+def setupSimulation(productId: str, machine: str, randomInterMin: int, randomInterMax: int):
+    path = Path(os.getcwd() + os.path.normpath("/data/programms/" + productId + machine))
+
+    data = DataLoader(path)
+    setupM20 = CartSetup(data(), randomInterMin, randomInterMax)
+    timeM20 = setupM20()
+    return {machine: timeM20}
 
 
 @app.get(config.get("network", "basepath") + "/predict/order/")
