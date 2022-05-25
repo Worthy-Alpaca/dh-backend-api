@@ -10,6 +10,7 @@ class DataWrangler:
 
     def __init__(self, machine: str) -> None:
         # replace with DB lookup
+        self.machine = machine
         pathM20 = Path(os.getcwd() + os.path.normpath(f"/data/logs/{machine}/"))
         pd.options.mode.chained_assignment = None
 
@@ -72,21 +73,16 @@ class DataWrangler:
                 timeNeeded = timeNeeded.total_seconds()
                 pcbcount.loc[index, "Time_Needed"] = timeNeeded
             # pd.concat([temp, pcbcount])
-
-            outputpath = os.getcwd() + os.path.normpath(f"/data/logs/combined/data{machine}.csv")
-            """if exists(outputpath):
-                oldDF = pd.read_csv(outputpath, encoding='unicode_escape')
-                pd.concat([oldDF, pcbcount], ignore_index=True)
-                pcbcount = oldDF#.drop_duplicates()"""
             pcbcount = pcbcount[pcbcount["Kopfmaterial"].notna()]
-            pcbcount.to_csv(outputpath, mode="a", header=not os.path.exists(outputpath))
+            self.pcbcount = pcbcount
 
     def returnData(self):
-        df = pd.read_csv(
-            os.getcwd() + os.path.normpath("/data/logs/combined/data.csv"),
-            encoding="unicode_escape",
-        )
-        return df[["Date", "Contents", "Time_Needed"]].drop_duplicates()
+        
+        return self.pcbcount[["Date", "Contents", "Time_Needed"]].drop_duplicates()
+
+    def saveData(self):
+        outputpath = os.getcwd() + os.path.normpath(f"/data/logs/combined/data{self.machine}.csv")
+        self.pcbcount.to_csv(outputpath, mode="a", header=not os.path.exists(outputpath))
 
 
 class MachineDataLoader:
