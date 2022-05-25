@@ -32,27 +32,33 @@ class ManufacturingImproved:
         if machine.offsets is not None:
             self.OFFSET_X = machine.offsets["pcb"][0]
             self.OFFSET_Y = machine.offsets["pcb"][1]
-            self.CHECKPOINT = (machine.offsets["checkpoint"][0], machine.offsets["checkpoint"][1])
+            self.CHECKPOINT = (
+                machine.offsets["checkpoint"][0],
+                machine.offsets["checkpoint"][1],
+            )
             self.feedercarts = {}
             for machine in machine.offsets["feedercarts"]:
                 for key in machine:
                     self.feedercarts[key] = machine[key]
 
-    def __call__(self, mulitPickOption: bool = True, plotPCB: bool = False) -> (float | dict):
+    def __call__(
+        self, mulitPickOption: bool = True, plotPCB: bool = False
+    ) -> (float | dict):
         self.multiPickOption = mulitPickOption
         time = int
         plotX = list
         plotY = list
         start_time = tm.time()
-
+        results = list
         with concurrent.futures.ThreadPoolExecutor() as executer:
             for i in self.offsets:
-                future = executer.submit(self.calcTime, i)
-                iter_data = future.result()
+                results.append(executer.submit(self.calcTime, i))
 
-                time = time + iter_data["time"]
-                plotX.append(iter_data["plot_x"])
-                plotY.append(iter_data["plot_y"])
+        for f in results:
+            iter_data = f.result()
+            time = time + iter_data["time"]
+            plotX.append(iter_data["plot_x"])
+            plotY.append(iter_data["plot_y"])
 
         print("---- Runtime: %s seconds ----" % (tm.time() - start_time))
         if plotPCB == True:
@@ -117,8 +123,12 @@ class ManufacturingImproved:
             DROPOFF = (lookupTable.Dropff.max() / 1000) * 0.1
 
             if multiPickOption == False:
-                path_length = self.__calcVector(location_vectorA, self.CHECKPOINT, velocity)
-                checkpoint = self.__calcVector(self.CHECKPOINT, location_vectorB, velocity)
+                path_length = self.__calcVector(
+                    location_vectorA, self.CHECKPOINT, velocity
+                )
+                checkpoint = self.__calcVector(
+                    self.CHECKPOINT, location_vectorB, velocity
+                )
                 TIME = path_length + checkpoint + DROPOFF + TIME
 
                 next_index = index + 1
