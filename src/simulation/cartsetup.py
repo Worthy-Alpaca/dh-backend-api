@@ -8,6 +8,7 @@ class CartSetup:
     def __init__(
         self, data: tuple, randomInterruptMin: int = 0, randomInterruptMax: int = 30
     ):
+        """Class which initializes the cartsetuptime calculations"""
         components = data[1]
         feedcart = {}
         for i in components["FeedStyle"].unique():
@@ -18,7 +19,7 @@ class CartSetup:
         self.feedcart = {k: v for k, v in feedcart.items() if k == k}
 
     def __call__(self):
-
+        """Starts the setuptime calculation process"""
         cart = 0
         time = 0
         # print(f"Setup for this product in progess: {len(self.feedcart.keys())} Carts needed")
@@ -39,7 +40,7 @@ class CartSetup:
         return {"time": time, "numCarts": len(self.feedcart.keys())}
 
     def desetup(self):
-
+        """Calculations to simulate the derigging of feedercarts"""
         time = 0
         for i in range(self.NumComp):
             time = (48 + np.random.randint(0, 30) + 9.9) + time

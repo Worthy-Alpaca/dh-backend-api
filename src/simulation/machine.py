@@ -14,10 +14,8 @@ from pathlib import Path
 
 
 class Machine:
-    """Class that represents a machine"""
-
-    # def __init__(self, name: str, cph: int, nozHeads: int, machineType: str, offsets: dict = None) -> None:
     def __init__(self, dummyMachine: DummyMachine) -> None:
+        """Class that represents a machine"""
         self.machineName = dummyMachine.machine
         self.cph = dummyMachine.cph
         self.nozHeads = dummyMachine.nozHeads
@@ -27,6 +25,7 @@ class Machine:
         self.offsets = dummyMachine.offsets
 
     def getData(self) -> dict:
+        """Returns the machine properties in a dict"""
         return {
             "machine": self.machineName,
             "cph": self.cph,

@@ -23,13 +23,11 @@ PICKUP = 0.1
 
 
 class Manufacturing:
-    """
-    Simulates the manufacturing process in SMD machines M10 and M20
-    - `machine`: either M10 (default) or M20
+    def __init__(self, data: tuple, machine: Machine):
+        """
+        Simulates the manufacturing process in SMD machines M10 and M20
 
-    """
-
-    def __init__(self, data: tuple, machine: Machine) -> object:
+        """
         # assign machine property
         self.machine = machine
         self.components = data[1]
@@ -352,7 +350,7 @@ class Manufacturing:
                 time = time + iter_data["time"]
                 plotX.append(iter_data["plot_x"])
                 plotY.append(iter_data["plot_y"])
-        #print("--- %s seconds ---" % (tm.time() - start_time))
+        # print("--- %s seconds ---" % (tm.time() - start_time))
         if plotPCB == True:
             return {
                 "time": time,

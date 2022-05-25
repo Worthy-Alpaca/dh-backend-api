@@ -30,7 +30,7 @@ else:
 
 @app.put(config.get("network", "basepath") + "/")
 def root(response: Response, request: Request):
-    """check base status of API"""
+    """endpoint to check base status of API"""
     response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     if exists(os.getcwd() + os.path.normpath("/data")):
         response.status_code = status.HTTP_200_OK
@@ -86,7 +86,7 @@ def setupSimulation(
     randomInterMax: int,
     response: Response,
 ):
-
+    """endpoint to calculate the setup time for a given product"""
     path = Path(
         os.getcwd() + os.path.normpath("/data/programms/" + productId + "/" + machine)
     )
@@ -102,6 +102,7 @@ def setupSimulation(
 
 @app.get(config.get("network", "basepath") + "/predict/order/")
 async def predictOrder(request: Request, response: Response):
+    """endpoint to predict the best order of products between two given times"""
     request.body()
     print(request.query_params.get("startdate"))
     print(request.query_params.get("enddate"))
@@ -109,6 +110,7 @@ async def predictOrder(request: Request, response: Response):
 
 @app.get(config.get("network", "basepath") + "/data/machinedata/")
 def getMachineData(response: Response):
+    """endpoint to receive machinedata"""
     try:
         data = MachineDataLoader()
     except:
@@ -120,6 +122,7 @@ def getMachineData(response: Response):
 
 @app.get(config.get("network", "basepath") + "/data/options/")
 def getOptions():
+    """endpoint to get all available programms"""
     # replace with DB lookup for all possible programms
     path = Path(os.getcwd() + os.path.normpath("/data/programms"))
 
