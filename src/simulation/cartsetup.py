@@ -21,13 +21,11 @@ class CartSetup:
 
         cart = 0
         time = 0
-        print(
-            f"Setup for this product in progess: {len(self.feedcart.keys())} Carts needed"
-        )
+        # print(f"Setup for this product in progess: {len(self.feedcart.keys())} Carts needed")
         for key in self.feedcart:
             cart = cart + 1
 
-            print(f"Setting up Cart {cart} with {len(self.feedcart[key])} components")
+            # print(f"Setting up Cart {cart} with {len(self.feedcart[key])} components")
             complexity = len(self.feedcart[key]) / 36
             for i in range(len(self.feedcart[key])):
                 time = (
@@ -36,7 +34,7 @@ class CartSetup:
                     * complexity
                     + 9.8
                 ) + time
-            print(f"Needed time: {time / 60} min")
+            # print(f"Needed time: {time / 60} min")
 
         return {"time": time, "numCarts": len(self.feedcart.keys())}
 
