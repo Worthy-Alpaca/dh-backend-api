@@ -352,7 +352,7 @@ class Manufacturing:
                 time = time + iter_data["time"]
                 plotX.append(iter_data["plot_x"])
                 plotY.append(iter_data["plot_y"])
-        print("--- %s seconds ---" % (tm.time() - start_time))
+        #print("--- %s seconds ---" % (tm.time() - start_time))
         if plotPCB == True:
             return {
                 "time": time,
