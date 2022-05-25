@@ -12,8 +12,12 @@ class DataLoader:
 
     def __init__(self, data_folder: Path, separator: str = ","):
         matchers = ["Cmp", "Kyu", "Tou"]
-        matching = [s for s in os.listdir(data_folder) if any(xs in s for xs in matchers)]
-        global_string = Path(os.getcwd() + os.path.normpath("/data/global/Components width.csv"))
+        matching = [
+            s for s in os.listdir(data_folder) if any(xs in s for xs in matchers)
+        ]
+        global_string = Path(
+            os.getcwd() + os.path.normpath("/data/global/Components width.csv")
+        )
         self.global_Feeder_Data = pd.read_csv(global_string, sep=";")
 
         for i in matching:
@@ -74,7 +78,9 @@ class DataLoader:
                 "Placement(Acceleration):Z": "Dropoff",
             }
         )
-        components_feeder_data = components_feeder_data.rename(columns={"Component Code": "index"})
+        components_feeder_data = components_feeder_data.rename(
+            columns={"Component Code": "index"}
+        )
 
         # replace commas with decimal points
         data["X"] = data["X"].replace({",": "."}, regex=True).astype(float)
@@ -96,7 +102,9 @@ class DataLoader:
 
         # split offset and drop duplicates
         offsets = data.loc[data["Task"] == "Repeat Offset"]
-        zero_offset = pd.DataFrame({"Code": "", "X": 0, "Y": 0, "Task": "Repeat Offset"}, index=[0])
+        zero_offset = pd.DataFrame(
+            {"Code": "", "X": 0, "Y": 0, "Task": "Repeat Offset"}, index=[0]
+        )
         offsets = pd.concat([zero_offset, offsets], axis=0)
         offsets = offsets.drop_duplicates()
         offsets = offsets.reindex()
@@ -106,9 +114,6 @@ class DataLoader:
             offsetlist.append(offset)
 
         data = data.loc[data["Task"] != "B Mark Positive Logic"]
-
-        # drop NaN in data
-        data = data.dropna()
         fid = data[(data.Task == "Fiducial")]
         fid = fid.rename(columns={"Code": "index"})
 
@@ -119,7 +124,11 @@ class DataLoader:
         components["Pickup_Y"] = 0
         components["Pickup_X"] = range(len(components.index))
         components = pd.merge(
-            left=components, right=components_data, left_on="index", right_on="index", how="left"
+            left=components,
+            right=components_data,
+            left_on="index",
+            right_on="index",
+            how="left",
         ).drop_duplicates()
         components = pd.merge(
             left=components,
