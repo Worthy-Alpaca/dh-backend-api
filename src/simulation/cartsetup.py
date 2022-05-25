@@ -32,7 +32,10 @@ class CartSetup:
                 ) + time
             print(f"Needed time: {time / 60} min")
 
-        return time
+        return {
+            'time': time,
+            'numCarts': len(self.feedcart.keys())
+        }
 
     def desetup(self):
 
