@@ -46,7 +46,9 @@ def root(response: Response, request: Request):
 def startSimulation(productId: str, dummyMachine: DummyMachine, response: Response):
     """endpoint to calculate the coating time for a given product"""
     # replace this with Database lookup
-    path = Path(os.getcwd() + os.path.normpath("/data/programms/" + productId + "/" + "/m20"))
+    path = Path(
+        os.getcwd() + os.path.normpath("/data/programms/" + productId + "/" + "/m20")
+    )
     data = DataLoader(path)
     machine = Machine(dummyMachine)
     manufacturing = Manufacturing(data(), machine)
@@ -55,22 +57,20 @@ def startSimulation(productId: str, dummyMachine: DummyMachine, response: Respon
 
 
 @app.put(config.get("network", "basepath") + "/simulate/manufacturing/")
-def startSimulation(productId: str, dummyMachine: DummyMachine, response: Response):
+def startSimulation(
+    productId: str, useIdealState: bool, dummyMachine: DummyMachine, response: Response
+):
     """endpoint to calculate the manufacturing time for a given product"""
     # replace this with Database lookup
     path = Path(
-        os.getcwd() + os.path.normpath("/data/programms/" + productId + "/" + dummyMachine.machine)
+        os.getcwd()
+        + os.path.normpath("/data/programms/" + productId + "/" + dummyMachine.machine)
     )
     data = DataLoader(path)
-    """try:
-        data = DataLoader(path)
-    except:
-        response.status_code = status.HTTP_404_NOT_FOUND
-        return response"""
     machine = Machine(dummyMachine)
     try:
         manufacturing = Manufacturing(data(), machine)
-        simulationData = manufacturing(plotPCB=True)
+        simulationData = manufacturing(plotPCB=True, useIdealState=useIdealState)
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         body = {"error": e}
@@ -78,14 +78,26 @@ def startSimulation(productId: str, dummyMachine: DummyMachine, response: Respon
     return simulationData
 
 
-@app.get(config.get("network", "basepath") + "/simulate/setup")
-def setupSimulation(productId: str, machine: str, randomInterMin: int, randomInterMax: int):
-    path = Path(os.getcwd() + os.path.normpath("/data/programms/" + productId + machine))
+@app.get(config.get("network", "basepath") + "/simulate/setup/")
+def setupSimulation(
+    productId: str,
+    machine: str,
+    randomInterMin: int,
+    randomInterMax: int,
+    response: Response,
+):
 
-    data = DataLoader(path)
+    path = Path(
+        os.getcwd() + os.path.normpath("/data/programms/" + productId + "/" + machine)
+    )
+    try:
+        data = DataLoader(path)
+    except:
+        return {"time": 420}
+
     setupM20 = CartSetup(data(), randomInterMin, randomInterMax)
     timeM20 = setupM20()
-    return {machine: timeM20}
+    return timeM20
 
 
 @app.get(config.get("network", "basepath") + "/predict/order/")
@@ -95,7 +107,7 @@ async def predictOrder(request: Request, response: Response):
     print(request.query_params.get("enddate"))
 
 
-@app.get(config.get("network", "basepath") + "/data/machinedata")
+@app.get(config.get("network", "basepath") + "/data/machinedata/")
 def getMachineData(response: Response):
     try:
         data = MachineDataLoader()
@@ -106,7 +118,7 @@ def getMachineData(response: Response):
     return data.returnData()
 
 
-@app.get(config.get("network", "basepath") + "/data/options")
+@app.get(config.get("network", "basepath") + "/data/options/")
 def getOptions():
     # replace with DB lookup for all possible programms
     path = Path(os.getcwd() + os.path.normpath("/data/programms"))
