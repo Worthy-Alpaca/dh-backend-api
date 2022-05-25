@@ -5,7 +5,9 @@ import random
 
 
 class CartSetup:
-    def __init__(self, data: tuple, randomInterruptMin: int = 0, randomInterruptMax: int = 30):
+    def __init__(
+        self, data: tuple, randomInterruptMin: int = 0, randomInterruptMax: int = 30
+    ):
         components = data[1]
         feedcart = {}
         for i in components["FeedStyle"].unique():
@@ -18,24 +20,25 @@ class CartSetup:
     def __call__(self):
 
         cart = 0
-        print(f"Setup for this product in progess: {len(self.feedcart.keys())} Carts needed")
+        time = 0
+        print(
+            f"Setup for this product in progess: {len(self.feedcart.keys())} Carts needed"
+        )
         for key in self.feedcart:
             cart = cart + 1
-            time = 0
+
             print(f"Setting up Cart {cart} with {len(self.feedcart[key])} components")
             complexity = len(self.feedcart[key]) / 36
             for i in range(len(self.feedcart[key])):
                 time = (
                     60
-                    + random.randint(self.randomInterruptMin, self.randomInterruptMax) * complexity
+                    + random.randint(self.randomInterruptMin, self.randomInterruptMax)
+                    * complexity
                     + 9.8
                 ) + time
             print(f"Needed time: {time / 60} min")
 
-        return {
-            'time': time,
-            'numCarts': len(self.feedcart.keys())
-        }
+        return {"time": time, "numCarts": len(self.feedcart.keys())}
 
     def desetup(self):
 
