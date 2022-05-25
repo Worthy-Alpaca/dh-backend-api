@@ -33,6 +33,7 @@ class Manufacturing:
         self.components = data[1]
         self.data = data[0]
         self.offsets = data[2]
+        self.heads = list
         if machine.offsets is not None:
             self.OFFSET_X = machine.offsets["pcb"][0]
             self.OFFSET_Y = machine.offsets["pcb"][1]
@@ -59,7 +60,7 @@ class Manufacturing:
 
         return path_length / velocity
 
-    def calcTime(self, offset_row: tuple):
+    def calcTime(self, offset_row: tuple, useIdealState: bool):
         """
         Calculates the time for a given offset
         """
@@ -78,6 +79,12 @@ class Manufacturing:
                 continue
             # calculating the path, adding offset for coordinate transformation
             lookupTable = self.components[self.components["index"].str.match(row.Code)]
+            currentHead = lookupTable.Nozzle_No.max()
+            if currentHead not in self.heads:
+                if len(self.heads) < self.machine.nozHeads:
+                    self.heads.append(currentHead)
+                else:
+                    self.heads.pop()
 
             cart_coordinates = self.feedercarts[lookupTable.FeedStyle.max()]
             location_vector_A = (
@@ -89,9 +96,14 @@ class Manufacturing:
                 (row.Y + self.OFFSET_Y + offset_row[1]),
             )
             plot_coordinates = ((row.X + offset_row[0]), (row.Y + offset_row[1]))
-            velocity = (
-                lookupTable.mean_acceleration.max()
-            )  # self.machine.velocity  # * (lookupTable.mean_acceleration.max() / 1000)
+            velocity = 0
+            if useIdealState == False:
+                velocity = lookupTable.mean_acceleration.max()
+            else:
+                if self.machine.machineName.lower() == "m20":
+                    velocity = 1345.87
+                elif self.machine.machineName.lower() == "m10":
+                    velocity = 1621.4
 
             DROPOFF = (lookupTable.Dropoff.max() / 1000) * 0.1
 
@@ -110,15 +122,22 @@ class Manufacturing:
                             break
                         next_index = next_index + 1
                     nextLookUpTable = self.components[
-                        self.components["index"].str.match(self.data.loc[next_index, "Code"])
+                        self.components["index"].str.match(
+                            self.data.loc[next_index, "Code"]
+                        )
                     ]
-                    nextcart_coordinates = self.feedercarts[nextLookUpTable.FeedStyle.max()]
+                    nextcart_coordinates = self.feedercarts[
+                        nextLookUpTable.FeedStyle.max()
+                    ]
                     next_pickup = (
-                        int(nextcart_coordinates[0]) + (nextLookUpTable.ST_No.max() * 10),
+                        int(nextcart_coordinates[0])
+                        + (nextLookUpTable.ST_No.max() * 10),
                         int(nextcart_coordinates[1]),
                     )
                     TIME = (
-                        self.__calcVector(location_vector_A, next_pickup, velocity) + TIME + PICKUP
+                        self.__calcVector(location_vector_A, next_pickup, velocity)
+                        + TIME
+                        + PICKUP
                     )
 
                 elif row.Task == "End Multiple Pickup":
@@ -131,7 +150,9 @@ class Manufacturing:
                         (row.X + self.OFFSET_X + offset_row[0]),
                         (row.Y + self.OFFSET_Y + offset_row[1]),
                     )
-                    checkpoint = self.__calcVector(loc_vector_A, self.CHECKPOINT, velocity)
+                    checkpoint = self.__calcVector(
+                        loc_vector_A, self.CHECKPOINT, velocity
+                    )
                     path = self.__calcVector(self.CHECKPOINT, loc_vector_B, velocity)
                     TIME = path + TIME + DROPOFF + checkpoint
 
@@ -157,11 +178,16 @@ class Manufacturing:
                             break
                         next_index = next_index + 1
                     nextLookUpTable = self.components[
-                        self.components["index"].str.match(self.data.loc[next_index, "Code"])
+                        self.components["index"].str.match(
+                            self.data.loc[next_index, "Code"]
+                        )
                     ]
-                    nextcart_coordinates = self.feedercarts[nextLookUpTable.FeedStyle.max()]
+                    nextcart_coordinates = self.feedercarts[
+                        nextLookUpTable.FeedStyle.max()
+                    ]
                     next_pickup_vector = (
-                        int(nextcart_coordinates[0]) + (nextLookUpTable.ST_No.max() * 10),
+                        int(nextcart_coordinates[0])
+                        + (nextLookUpTable.ST_No.max() * 10),
                         int(nextcart_coordinates[1]),
                     )
                     TIME = (
@@ -176,8 +202,12 @@ class Manufacturing:
 
                 else:
                     # calculate the path/time for a single pickup
-                    path_length = self.__calcVector(location_vector_A, self.CHECKPOINT, velocity)
-                    checkpoint = self.__calcVector(self.CHECKPOINT, location_vector_B, velocity)
+                    path_length = self.__calcVector(
+                        location_vector_A, self.CHECKPOINT, velocity
+                    )
+                    checkpoint = self.__calcVector(
+                        self.CHECKPOINT, location_vector_B, velocity
+                    )
                     TIME = (path_length) + TIME + DROPOFF + checkpoint
 
                     # calculate the path/time to return to the next pickup point
@@ -188,16 +218,25 @@ class Manufacturing:
                             break
                         next_index = next_index + 1
                     nextLookUpTable = self.components[
-                        self.components["index"].str.match(self.data.loc[next_index, "Code"])
+                        self.components["index"].str.match(
+                            self.data.loc[next_index, "Code"]
+                        )
                     ]
-                    nextcart_coordinates = self.feedercarts[nextLookUpTable.FeedStyle.max()]
+                    nextcart_coordinates = self.feedercarts[
+                        nextLookUpTable.FeedStyle.max()
+                    ]
                     next_pickup_vector = (
-                        int(nextcart_coordinates[0]) + (nextLookUpTable.ST_No.max() * 10),
+                        int(nextcart_coordinates[0])
+                        + (nextLookUpTable.ST_No.max() * 10),
                         int(nextcart_coordinates[1]),
                     )
 
                     TIME = (
-                        (self.__calcVector(next_pickup_vector, location_vector_B, velocity))
+                        (
+                            self.__calcVector(
+                                next_pickup_vector, location_vector_B, velocity
+                            )
+                        )
                         + TIME
                         + DROPOFF
                         + PICKUP
@@ -209,8 +248,12 @@ class Manufacturing:
 
             else:
                 # all components get treated with single pick
-                path_length = self.__calcVector(location_vector_A, self.CHECKPOINT, velocity)
-                checkpoint = self.__calcVector(self.CHECKPOINT, location_vector_B, velocity)
+                path_length = self.__calcVector(
+                    location_vector_A, self.CHECKPOINT, velocity
+                )
+                checkpoint = self.__calcVector(
+                    self.CHECKPOINT, location_vector_B, velocity
+                )
                 TIME = (path_length) + TIME + DROPOFF + checkpoint
                 next_index = index + 1
                 while next_index not in self.data.index:
@@ -219,7 +262,9 @@ class Manufacturing:
                         break
                     next_index = next_index + 1
                 nextLookUpTable = self.components[
-                    self.components["index"].str.match(self.data.loc[next_index, "Code"])
+                    self.components["index"].str.match(
+                        self.data.loc[next_index, "Code"]
+                    )
                 ]
                 nextcart_coordinates = self.feedercarts[nextLookUpTable.FeedStyle.max()]
                 next_pickup_vector = (
@@ -239,7 +284,12 @@ class Manufacturing:
         return {"time": TIME, "plot_x": self.plotting_x, "plot_y": self.plotting_y}
 
     def __call__(
-        self, multiPickOption: bool = True, plotPCB: bool = False, *args: any, **kwds: any
+        self,
+        multiPickOption: bool = True,
+        plotPCB: bool = False,
+        useIdealState: bool = False,
+        *args: any,
+        **kwds: any
     ) -> (float | dict):
         """Start the assembly simulation"""
         self.multiPickOption = multiPickOption
@@ -252,7 +302,7 @@ class Manufacturing:
         with concurrent.futures.ThreadPoolExecutor() as executor:
             for i in self.offsets:
 
-                future = executor.submit(self.calcTime, i)
+                future = executor.submit(self.calcTime, i, useIdealState)
                 iter_data = future.result()
 
                 time = time + iter_data["time"]
