@@ -38,7 +38,9 @@ class MachineDataLoader:
                 "Dataset reading complete",
                 tm.time() - start_time,
             )
-            df = df[["No.", "Date", "Fiducial#", "Offset", "Head#", "Feed Style"]]
+            df = df[
+                ["No.", "Date", "Fiducial#", "Offset", "Head#", "Feed Style", "PCB ID"]
+            ]
             df = df.dropna()
             df = df.iloc[:-1, :]
             df["Fiducial#"] = df["Fiducial#"].astype(int)
@@ -95,10 +97,9 @@ class MachineDataLoader:
 
     def calcTimings(self, day: pd.DataFrame, dayCount: int) -> pd.DataFrame:
         list_df = []
-        for n, g in day.groupby(["Fiducial#"]):
+        for n, g in day.groupby(["PCB ID"]):
             # print(g, file=open("output.txt", "a"))
             list_df.append(g)
-
         print(
             f"Processing {len(list_df)} Batches for Day {dayCount}",
             file=open("output.txt", "a"),
@@ -208,19 +209,25 @@ class MachineDataLoader:
                             if timeNeeded.total_seconds() == 0
                             else timeNeeded.total_seconds()
                         )
+                        heads = day["Head#"].max()
+                        if heads == 4:
+                            machine = "m20"
+                        else:
+                            machine = "m10"
                         dataDict = {
                             "StartTime": x["start"],
                             "EndTime": y["end"],
                             "placementsNeeded": placementsNeeded,
                             "timeNeeded": timeNeeded,
-                            "machine": "m20",
-                            "heads": day["Head#"].max(),
+                            "machine": machine,
+                            "heads": heads,
                             "cph": (placementsNeeded / timeNeeded) * 3600,
                         }
 
                         dataDict = pd.DataFrame(dataDict, [0])
 
                         outputDay = pd.concat([outputDay, dataDict], ignore_index=True)
+                        outputDay.sort_values(by="StartTime", inplace=True)
                     except:
                         # print("An error occured. Removing false Data")
                         placementTimings.remove(x)
