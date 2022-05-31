@@ -27,6 +27,8 @@ class Manufacturing:
         """
         Simulates the manufacturing process in SMD machines M10 and M20
 
+        - data: the data returned from the DataLoader
+        - machine: the current Maschine instance
         """
         # assign machine property
         self.machine = machine
@@ -34,15 +36,20 @@ class Manufacturing:
         self.data: pd.DataFrame = data[0]
         self.offsets = data[2]
         self.heads = {}
+        # add offsets in case of SMD machine
         if machine.offsets is not None:
+            # offset for the PCB arrival point
             self.OFFSET_X = machine.offsets["pcb"][0]
             self.OFFSET_Y = machine.offsets["pcb"][1]
+            # coordinates for the visual checkpoint
             self.CHECKPOINT = (
                 machine.offsets["checkpoint"][0],
                 machine.offsets["checkpoint"][1],
             )
+            # coordinates for the tool staging area
             self.toolPickup = (machine.offsets["tools"][0], machine.offsets["tools"][1])
             self.feedercarts = {}
+            # offsets for feedercart positions
             for machine in machine.offsets["feedercarts"]:
                 for key in machine:
                     self.feedercarts[key] = machine[key]
@@ -53,33 +60,41 @@ class Manufacturing:
         - vectorA: where you are
         - vectorB: where you want to go
         """
+        # calculate the connection vector
         vector_AB = (
             (float(vectorB[0]) - float(vectorA[0])),
             (float(vectorB[1]) - float(vectorA[1])),
         )
+        # calculate the length of the connection vector
         path_length = math.sqrt(vector_AB[0] ** 2 + vector_AB[1] ** 2)
-
+        # calculate the travel time and return it
         return path_length / velocity
 
     def calcTime(self, offset_row: tuple, useIdealState: bool):
         """
         Calculates the time for a given offset
+
+        - offset_row: the current offset to add onto the coordinates
+        - useIdealState: if the best performance for each machine should be used
         """
 
         def isNan(string):
             return string != string
 
+        # assigning properties for later use
         TIME = 0
         self.plotting_x = []
         self.plotting_y = []
         multiPick = deque()
         blocks = []
+        # dividing the placement data into blocks
         blockId = (self.data["Task"] == "Start Block").cumsum()
         for n, g in self.data.groupby(blockId):
             g = g.dropna()
             blocks.append(g)
-        # self.data = self.data.dropna()
+        # Loop over all blocks in the placementdata
         for block in blocks:
+            # calculate the
             for index, row in block.iterrows():
                 # check for NaN values and continue if found
                 if isNan(row.Code):
@@ -87,11 +102,10 @@ class Manufacturing:
                 if row.Task == "Start Block":
                     continue
                 # calculating the path, adding offset for coordinate transformation
-
                 lookUp = self.components["index"].str.match(row.Code)
                 lookupTable = self.components[lookUp]
-
                 cart_coordinates = self.feedercarts[lookupTable.FeedStyle.max()]
+                # creating location vectors
                 location_vector_A = (
                     int(cart_coordinates[0]) + (lookupTable.ST_No.max() * 10),
                     int(cart_coordinates[1]),
@@ -125,6 +139,7 @@ class Manufacturing:
                 else:
                     self.heads[currentHead] = tm.time()
 
+                # calculating velocity based on component or idealState
                 velocity = 0
                 if useIdealState == False:
                     velocity = lookupTable.mean_acceleration.max()
@@ -283,6 +298,7 @@ class Manufacturing:
 
                 else:
                     # all components get treated with single pick
+                    # regardless if they can be multipicked
                     path_length = self.__calcVector(
                         location_vector_A, self.CHECKPOINT, velocity
                     )
@@ -323,6 +339,7 @@ class Manufacturing:
                 # saving coordinates for visual plotting
                 self.plotting_x.append(plot_coordinates[0])
                 self.plotting_y.append(plot_coordinates[1])
+
         return {"time": TIME, "plot_x": self.plotting_x, "plot_y": self.plotting_y}
 
     def __call__(
