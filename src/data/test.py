@@ -14,8 +14,8 @@ class MyFancyException(Exception):
 
 
 class MachineDataLoader:
-    def __init__(self) -> None:
-        path = Path(os.getcwd() + os.path.normpath("/data/logs/machine"))
+    def __init__(self, machine) -> None:
+        path = Path(os.getcwd() + os.path.normpath(f"/data/logs/machine {machine}"))
 
         """try:
             os.remove("output.txt")
@@ -43,12 +43,13 @@ class MachineDataLoader:
             ]
             df = df.dropna()
             df = df.iloc[:-1, :]
-            df["Fiducial#"] = df["Fiducial#"].astype(int)
-            df["Offset"] = df["Offset"].astype(int)
+            print(df.info())
+            # df["Fiducial#"] = df["Fiducial#"].astype(int)
+            # df["Offset"] = df["Offset"].astype(int)
             df["No."] = df["No."].astype(int)
             df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
             df["Head#"] = df["Head#"].astype(int)
-            # print(df["Fiducial#"].value_counts().drop_duplicates())
+            # print(df["Fiducial#"].value_counts().drop_duplicate0s())
 
             DFList = []
 
@@ -78,6 +79,7 @@ class MachineDataLoader:
             )
             print(f"===== Duration Multithreading: {tm.perf_counter() - start} =====")
             output = output.drop_duplicates()
+            output.sort_values(by="StartTime", inplace=True)
             # endtime = output["EndTime"].max()
             # starttime = output["StartTime"].min()
             # endtime = re.search("(.+?) (.+?)", str(endtime)).group(1)
@@ -108,79 +110,27 @@ class MachineDataLoader:
         placementTimings = []
         for i, v in enumerate(list_df):
 
-            if i + 1 > len(list_df):
-                break
-
-            if v["Offset"].max() == v["Offset"].min():
-                """Logic to combine multiple combs into one PCB assembly"""
-                if v["Offset"].min() == 0 or v["Offset"].max() == 0:
-                    start = v["Date"].min()
-                    placement = v["No."].min()
-                    # print(v, file=open("output.txt", "a"))
-                    placementTimings.append(
-                        {
-                            "start": start,
-                            "placement": placement,
-                            "head": v["Head#"],
-                            "FeedStyle": v["Feed Style"],
-                        }
-                    )
-                else:
-
-                    if i + 1 >= len(list_df):
-                        end = v["Date"].max()
-                        placement = v["No."].max()
-                        # print(v, file=open("output.txt", "a"))
-                        placementTimings.append(
-                            {
-                                "end": end,
-                                "placement": placement,
-                                "head": v["Head#"],
-                                "FeedStyle": v["Feed Style"],
-                            }
-                        )
-                        break
-                    nextV = list_df[i + 1]
-                    if (
-                        nextV["Offset"].min() == 0
-                        or nextV["Offset"].max() == 0
-                        or i + 1 > len(list_df)
-                    ):
-                        end = v["Date"].max()
-                        placement = v["No."].max()
-                        # print(v, file=open("output.txt", "a"))
-                        placementTimings.append(
-                            {
-                                "end": end,
-                                "placement": placement,
-                                "head": v["Head#"],
-                                "FeedStyle": v["Feed Style"],
-                            }
-                        )
-                        # continue
-
-            else:
-                start = v["Date"].min()
-                end = v["Date"].max()
-                placementStart = v["No."].min()
-                placementEnd = v["No."].max()
-                placementTimings.append(
-                    {
-                        "start": start,
-                        "placement": placementStart,
-                        "head": v["Head#"],
-                        "FeedStyle": v["Feed Style"],
-                    }
-                )
-                placementTimings.append(
-                    {
-                        "end": end,
-                        "placement": placementEnd,
-                        "head": v["Head#"],
-                        "FeedStyle": v["Feed Style"],
-                    }
-                )
-                # timings = timings + placementTimings
+            start = v["Date"].min()
+            end = v["Date"].max()
+            placementStart = v["No."].min()
+            placementEnd = v["No."].max()
+            placementTimings.append(
+                {
+                    "start": start,
+                    "placement": placementStart,
+                    "head": v["Head#"],
+                    "FeedStyle": v["Feed Style"],
+                }
+            )
+            placementTimings.append(
+                {
+                    "end": end,
+                    "placement": placementEnd,
+                    "head": v["Head#"],
+                    "FeedStyle": v["Feed Style"],
+                }
+            )
+            # timings = timings + placementTimings
 
             if "end" in list(placementTimings[0].keys()):
                 placementTimings.pop(0)
@@ -271,5 +221,5 @@ class TimeFinder:
 
 
 if __name__ == "__main__":
-    MachineDataLoader()
+    MachineDataLoader("m10")
     # TimeFinder()
