@@ -7,7 +7,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch.nn as nn
 from torch.utils.data import DataLoader
+import time as tm
 import pandas as pd
+
+from torch.utils.tensorboard import SummaryWriter
 
 from helper.MachineDataSet import MachineDataSet
 from helper.model import Network
@@ -18,6 +21,8 @@ class MachinePredictions:
         torch.manual_seed(42)
         self.dataPath = dataPath
         self.model = Network()
+        folder = int(tm.perf_counter())
+        self.writer = SummaryWriter(f'./data/tensorboard/runs/{folder}')        
 
     def fit(
         self,
@@ -47,7 +52,8 @@ class MachinePredictions:
             self.model.parameters(), lr=learning_rate, **optim_args
         )
         self._loss_function = loss_function()
-
+        data, labels = next(iter(trainloader))
+        self.writer.add_graph(self.model, data)
         best_accu = 0
         with torch.profiler.profile(
             schedule=torch.profiler.schedule(wait=1, warmup=1, active=3, repeat=2),
@@ -65,7 +71,8 @@ class MachinePredictions:
                 """if test_accu > best_accu:
                     self.saveModel(epoch)
                     best_accu = test_accu"""
-
+            self.writer.flush()
+        self.writer.close()
         return (self._train_losses, self._train_accuracies), (
             self._test_losses,
             self._test_accuracies,
@@ -99,7 +106,7 @@ class MachinePredictions:
                 outputs = self.model(inputs)
 
                 test_loss = self._loss_function(outputs, targets)
-
+                self.writer.add_scalar('Loss/test', test_loss, epoch)
                 current_loss += test_loss.item()
 
                 _, predicted = torch.max(outputs, 0)
@@ -133,7 +140,7 @@ class MachinePredictions:
             outputs = self.model(inputs)
 
             loss = self._loss_function(outputs, targets)
-
+            self.writer.add_scalar('Loss/train', loss, epoch)
             loss.backward()
 
             self.optimizer.step()
@@ -239,16 +246,16 @@ if __name__ == "__main__":
 
     predictions = MachinePredictions(
         Path(
-            r"C:\Users\stephan.schumacher\Documents\repos\dh-backend-api\data\logs\combined\machine_timings_combined.csv"
+            r"C:\Users\Stephan\source\repos\dh-backend-api\data\logs\machine_timings_combined.csv"
         ),
     )
-    trainloader, testloader = predictions.prepareData(scale_data=True, batch_size=1)
+    trainloader, testloader = predictions.prepareData(scale_data=True, batch_size=25)
 
     optim_args = {
-        "lambd": 0.001,
-        "alpha": 0.8,
-        "t0": 1000000.0,
-        "weight_decay": 0.2,
+        "lambd": 0.0001,
+        "alpha": 0.2,
+        "t0": 10000.0,
+        "weight_decay": 0.9,
     }
     predictions.fit(
         3,
