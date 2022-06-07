@@ -3,3 +3,4 @@ settings.ini
 __pycache__
 .vscode
 output.txt
+/env
