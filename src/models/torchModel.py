@@ -11,6 +11,7 @@ import time as tm
 import pandas as pd
 
 from torch.utils.tensorboard import SummaryWriter
+from torchinfo import summary
 
 from helper.MachineDataSet import MachineDataSet
 from helper.model import Network
@@ -54,6 +55,7 @@ class MachinePredictions:
         self._loss_function = loss_function()
         data, labels = next(iter(trainloader))
         self.writer.add_graph(self.model, data)
+        #summary(self.model, input_size=( 3, self.batch_size))
         best_accu = 0
         with torch.profiler.profile(
             schedule=torch.profiler.schedule(wait=1, warmup=1, active=3, repeat=2),
@@ -163,6 +165,7 @@ class MachinePredictions:
         """
         returns trainloader and testloader
         """
+        self.batch_size = batch_size
         df = pd.read_csv(
             self.dataPath,
             low_memory=False,
