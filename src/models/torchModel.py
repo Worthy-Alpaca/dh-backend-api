@@ -9,6 +9,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import time as tm
 import pandas as pd
+from datetime import datetime
 
 from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary
@@ -22,8 +23,12 @@ class MachinePredictions:
         torch.manual_seed(42)
         self.dataPath = dataPath
         self.model = Network()
-        folder = int(tm.perf_counter())
-        self.writer = SummaryWriter(f'./data/tensorboard/runs/{folder}')        
+        self.device = "cpu"
+        if torch.cuda.is_available():
+            self.device = "cuda:0"
+            if torch.cuda.device_count() > 1:
+                self.model = nn.DataParallel(self.model)
+        self.model.to(self.device)
 
     def fit(
         self,
@@ -53,11 +58,15 @@ class MachinePredictions:
             self.model.parameters(), lr=learning_rate, **optim_args
         )
         self._loss_function = loss_function()
+        timestamp = datetime.now().strftime("%m-%d-%Y_%H_%M_%S")
+        self.run_name = f"{self.optimizer.__class__.__name__}_{self._loss_function.__class__.__name__}_{self.epochs}@{timestamp}"
+        self.writer = SummaryWriter(f"./data/tensorboard/runs/{self.run_name}")
         data, labels = next(iter(trainloader))
+        print(data.shape)
         self.writer.add_graph(self.model, data)
-        #summary(self.model, input_size=( 3, self.batch_size))
+        summary(self.model, input_size=data.shape)
         best_accu = 0
-        with torch.profiler.profile(
+        """with torch.profiler.profile(
             schedule=torch.profiler.schedule(wait=1, warmup=1, active=3, repeat=2),
             on_trace_ready=torch.profiler.tensorboard_trace_handler(
                 "./data/logs/model/"
@@ -65,15 +74,15 @@ class MachinePredictions:
             record_shapes=True,
             profile_memory=True,
             with_stack=True,
-        ) as prof:
-            for epoch in range(epochs):
-                self.__train(epoch, trainloader)
-                test_accu = self.__test(epoch, testloader)
-                prof.step()
-                """if test_accu > best_accu:
+        ) as prof:"""
+        for epoch in range(epochs):
+            self.__train(epoch, trainloader)
+            test_accu = self.__test(epoch, testloader)
+            # prof.step()
+            """if test_accu > best_accu:
                     self.saveModel(epoch)
                     best_accu = test_accu"""
-            self.writer.flush()
+            # self.writer.flush()
         self.writer.close()
         return (self._train_losses, self._train_accuracies), (
             self._test_losses,
@@ -84,7 +93,7 @@ class MachinePredictions:
 
         torch.save(
             self.model.state_dict(),
-            f"data/model/machineModel_{self.optimizer.__class__.__name__}_{self._loss_function.__class__.__name__}_{self.epochs}.model",
+            f"data/model/machineModel_{self.run_name}.model",
         )
         print("Checkpoint saved")
 
@@ -101,14 +110,15 @@ class MachinePredictions:
         total = 0
         with torch.no_grad():
             for data in tqdm(testloader, ascii=True):
-                inputs, targets = data[0], data[1]
+                inputs, targets = data[0].to(self.device), data[1].to(self.device)
                 inputs, targets = inputs.float(), targets.float()
                 targets = targets.reshape((targets.shape[0], 2))
 
                 outputs = self.model(inputs)
 
                 test_loss = self._loss_function(outputs, targets)
-                self.writer.add_scalar('Loss/test', test_loss, epoch)
+                self.writer.add_scalar("Loss/test", test_loss, epoch)
+                # self.writer.flush()
                 current_loss += test_loss.item()
 
                 _, predicted = torch.max(outputs, 0)
@@ -132,7 +142,7 @@ class MachinePredictions:
         correct = 0
         total = 0
         for data in tqdm(trainloader, ascii=True):
-            inputs, targets = data[0], data[1]
+            inputs, targets = data[0].to(self.device), data[1].to(self.device)
             # inputs, targets = data
             inputs, targets = inputs.float(), targets.float()
             targets = targets.reshape((targets.shape[0], 2))
@@ -142,7 +152,8 @@ class MachinePredictions:
             outputs = self.model(inputs)
 
             loss = self._loss_function(outputs, targets)
-            self.writer.add_scalar('Loss/train', loss, epoch)
+            self.writer.add_scalar("Loss/train", loss, epoch)
+            # self.writer.flush()
             loss.backward()
 
             self.optimizer.step()
@@ -153,7 +164,7 @@ class MachinePredictions:
             _, predicted = outputs.max(0)
             correct += torch.sum(predicted == targets.data).float()
 
-        # self.__adjust_learning_rate(epoch)
+        self.__adjust_learning_rate(epoch)
         accu = 100.0 * correct / total
         train_loss = current_loss / len(trainloader)
         self._train_losses.append(train_loss)
@@ -249,24 +260,19 @@ if __name__ == "__main__":
 
     predictions = MachinePredictions(
         Path(
-            r"C:\Users\Stephan\source\repos\dh-backend-api\data\logs\machine_timings_combined.csv"
+            r"C:\Users\stephan.schumacher\Documents\repos\dh-backend-api\data\logs\combined\machine_timings_combined.csv"
         ),
     )
-    trainloader, testloader = predictions.prepareData(scale_data=True, batch_size=25)
+    trainloader, testloader = predictions.prepareData(scale_data=True, batch_size=20)
 
-    optim_args = {
-        "lambd": 0.0001,
-        "alpha": 0.2,
-        "t0": 10000.0,
-        "weight_decay": 0.9,
-    }
-    predictions.fit(
+    optim_args = {"weight_decay": 0.9, "momentum": 0.5}
+    data1, data2 = predictions.fit(
         3,
         trainloader,
         testloader,
         loss_function=nn.MSELoss,
         optimizer=torch.optim.SGD,
-        # optim_args=optim_args,
+        optim_args=optim_args,
     )
 
     predictions.plotLoss()
