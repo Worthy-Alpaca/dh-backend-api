@@ -11,6 +11,8 @@ import time as tm
 import pandas as pd
 from datetime import datetime
 
+import os
+
 from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary
 
@@ -63,7 +65,7 @@ class MachinePredictions:
         self.writer = SummaryWriter(f"./data/tensorboard/runs/{self.run_name}")
         data, labels = next(iter(trainloader))
         print(data.shape)
-        self.writer.add_graph(self.model, data)
+        self.writer.add_graph(self.model, data.to(self.device))
         summary(self.model, input_size=data.shape)
         best_accu = 0
         """with torch.profiler.profile(
@@ -257,11 +259,12 @@ class MachinePredictions:
 
 
 if __name__ == "__main__":
+    global_string = Path(
+            os.getcwd() + os.path.normpath("/data/logs/combined/machine_timings_combined.csv")
+        )
 
     predictions = MachinePredictions(
-        Path(
-            r"C:\Users\stephan.schumacher\Documents\repos\dh-backend-api\data\logs\combined\machine_timings_combined.csv"
-        ),
+        global_string
     )
     trainloader, testloader = predictions.prepareData(scale_data=True, batch_size=20)
 
