@@ -18,13 +18,14 @@ from torchinfo import summary
 
 from helper.MachineDataSet import MachineDataSet
 from helper.model import Network
+import helper.losses as losses
 
 
 class MachinePredictions:
     def __init__(self, dataPath: str | Path) -> None:
         torch.manual_seed(42)
         self.dataPath = dataPath
-        self.model = Network()
+        self.model = Network(3, 2)
         self.device = "cpu"
         if torch.cuda.is_available():
             self.device = "cuda:0"
@@ -260,22 +261,24 @@ class MachinePredictions:
 
 if __name__ == "__main__":
     global_string = Path(
-            os.getcwd() + os.path.normpath("/data/logs/combined/machine_timings_combined.csv")
-        )
-
-    predictions = MachinePredictions(
-        global_string
+        os.getcwd()
+        + os.path.normpath("/data/logs/combined/machine_timings_combined.csv")
     )
-    trainloader, testloader = predictions.prepareData(scale_data=True, batch_size=20)
+
+    predictions = MachinePredictions(global_string)
+    trainloader, testloader = predictions.prepareData(scale_data=True, batch_size=25)
 
     optim_args = {"weight_decay": 0.9, "momentum": 0.5}
     data1, data2 = predictions.fit(
         3,
         trainloader,
         testloader,
-        loss_function=nn.MSELoss,
-        optimizer=torch.optim.SGD,
-        optim_args=optim_args,
+        # loss_function=nn.MSELoss,
+        # loss_function=nn.KLDivLoss,
+        # loss_function=losses.ComboLoss,
+        # loss_function=nn.BCELoss,
+        # optimizer=torch.optim.SGD,
+        # optim_args=optim_args,
     )
 
     predictions.plotLoss()
