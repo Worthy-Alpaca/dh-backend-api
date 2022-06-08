@@ -1,12 +1,25 @@
 from turtle import forward
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.nn.init import kaiming_uniform_
+from torch.nn.init import xavier_uniform_
 
 
 class Network(nn.Module):
-    def __init__(self) -> None:
+    def __init__(self, n_inputs: int, n_output: int) -> None:
         super(Network, self).__init__()
-        self.layers2 = nn.Sequential(
+        self.hidden1 = nn.Linear(n_inputs, 10)
+        kaiming_uniform_(self.hidden1.weight, nonlinearity="relu")
+        self.act1 = nn.ReLU()
+        # second hidden layer
+        self.hidden2 = nn.Linear(10, 8)
+        kaiming_uniform_(self.hidden2.weight, nonlinearity="relu")
+        self.act2 = nn.ReLU()
+        # third hidden layer and output
+        self.hidden3 = nn.Linear(8, 3)
+        xavier_uniform_(self.hidden3.weight)
+        self.act3 = nn.Softmax(dim=1)
+        """self.layers2 = nn.Sequential(
             nn.Linear(15, 64),
             nn.Sigmoid(),
             nn.Linear(64, 32),
@@ -14,25 +27,22 @@ class Network(nn.Module):
             nn.Linear(32, 3),
         )
         self.layers3 = nn.Sequential(
-            nn.Linear(3, 4), nn.SiLU(), nn.Linear(4, 2), nn.Sigmoid()
+            nn.Linear(3, 4), nn.SiLU(), nn.Linear(4, n_output), nn.Sigmoid()
         )
 
         self.logReg = nn.Sequential(nn.Sigmoid(), nn.Linear(3, 2))
-        self.lstm = nn.LSTM(3, 15, num_layers=2)
-        """self.gru = nn.LSTM(3, 20, num_layers=2)
-        self.relu1 = nn.ReLU()
-        self.linear1 = nn.Linear(20, 30)
-        #self.rnn = nn.GRU(30, 20, num_layers=2)
-        self.relu2 = nn.ReLU()
-        self.linear2 = nn.Linear(20, 12)
-        #self.lstm = nn.GRU(12, 4, num_layers=2)
-        self.relu3 = nn.ReLU()
-        self.linear3 = nn.Linear(4, 2)"""
+        self.lstm = nn.LSTM(n_input, 15, num_layers=2)
+
+        self.layers = nn.Sequential(
+            nn.Linear(n_input, n_output),
+            nn.ReLU(),
+        )"""
 
     def forward(self, x):
-        x, _ = self.lstm(x)
-        x = self.layers2(x)
-        x = self.layers3(x)
+        x = self.layers(x)
+        # x, _ = self.lstm(x)
+        # x = self.layers2(x)
+        # x = self.layers3(x)
         """x, _ = self.gru(x)
         x = self.relu1(x)
         x = self.linear1(x)
