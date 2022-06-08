@@ -1,4 +1,5 @@
 from pathlib import Path
+from matplotlib import pyplot as plt
 import pandas as pd
 import os
 import concurrent.futures
@@ -115,7 +116,7 @@ class MachineDataLoader:
             start_time = tm.time()
             print(f"Reading new Dataset: {i}", file=open("output.txt", "a"))
             print(f"Reading new Dataset: {i}")
-            df = pd.read_csv(i, encoding="unicode_escape", skiprows=1, low_memory=False)
+            df = self.loadData(i)
             print(
                 "Dataset reading complete",
                 tm.time() - start_time,
@@ -125,18 +126,6 @@ class MachineDataLoader:
                 "Dataset reading complete",
                 tm.time() - start_time,
             )
-            df = df[
-                ["No.", "Date", "Fiducial#", "Offset", "Head#", "Feed Style", "PCB ID"]
-            ]
-            df = df.dropna()
-            df = df.iloc[:-1, :]
-            print(df.info())
-            # df["Fiducial#"] = df["Fiducial#"].astype(int)
-            # df["Offset"] = df["Offset"].astype(int)
-            df["No."] = df["No."].astype(int)
-            df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
-            df["Head#"] = df["Head#"].astype(int)
-            # print(df["Fiducial#"].value_counts().drop_duplicate0s())
 
             DFList = []
 
@@ -165,14 +154,16 @@ class MachineDataLoader:
                 file=open("output.txt", "a"),
             )
             print(f"===== Duration Multithreading: {tm.perf_counter() - start} =====")
-            output = output.drop_duplicates()
+            # output = output.drop_duplicates()
             output.sort_values(by="StartTime", inplace=True)
             # endtime = output["EndTime"].max()
             # starttime = output["StartTime"].min()
             # endtime = re.search("(.+?) (.+?)", str(endtime)).group(1)
             # starttime = re.search("(.+?) (.+?)", str(starttime)).group(1)
+
             outputPath = Path(
-                os.getcwd() + os.path.normpath(f"/data/logs/combined/m20_timings.csv")
+                os.getcwd()
+                + os.path.normpath(f"/data/logs/combined/machine_timings_combined.csv")
             )
             output.to_csv(outputPath, mode="a", header=not os.path.exists(outputPath))
             """start = tm.perf_counter()
@@ -183,6 +174,40 @@ class MachineDataLoader:
                 self.calcTimings(day, dayCounter)
 
             print(f"===== Duration Sequential: {tm.perf_counter() - start} =====")"""
+
+    def loadData(self, path):
+        skip = -1
+        while True:
+            skip = skip + 1
+
+            df = pd.read_csv(
+                str(path), skiprows=skip, encoding="unicode_escape", low_memory=False
+            )
+            if "Date" in df.columns:
+                break
+
+        df = df[
+            [
+                "No.",
+                "Date",
+                "Fiducial#",
+                "Offset",
+                "Head#",
+                "Feed Style",
+                "PCB ID",
+                "Place(prgm) X",
+                "Place(prgm) Y",
+            ]
+        ]
+        df = df.dropna()
+        df = df.iloc[:-1, :]
+        df["No."] = df["No."].astype(int)
+        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+        df["Head#"] = df["Head#"].astype(int)
+        df[["Place(prgm) X", "Place(prgm) Y"]] = (
+            df[["Place(prgm) X", "Place(prgm) Y"]].astype(float) / 1000
+        )
+        return df
 
     def calcTimings(self, day: pd.DataFrame, dayCount: int) -> pd.DataFrame:
         list_df = []
@@ -207,6 +232,9 @@ class MachineDataLoader:
                     "placement": placementStart,
                     "head": v["Head#"],
                     "FeedStyle": v["Feed Style"],
+                    "min_Y": v["Place(prgm) Y"].min(),
+                    "min_X": v["Place(prgm) X"].min(),
+                    "class": v["PCB ID"],
                 }
             )
             placementTimings.append(
@@ -215,6 +243,9 @@ class MachineDataLoader:
                     "placement": placementEnd,
                     "head": v["Head#"],
                     "FeedStyle": v["Feed Style"],
+                    "max_Y": v["Place(prgm) Y"].max(),
+                    "max_X": v["Place(prgm) X"].max(),
+                    "class": v["PCB ID"],
                 }
             )
             # timings = timings + placementTimings
@@ -241,11 +272,18 @@ class MachineDataLoader:
                     try:
                         timeNeeded = y["end"] - x["start"]
                         placementsNeeded = y["placement"] - x["placement"]
+                        width = y["max_X"] - x["min_X"]
+                        height = y["max_Y"] - x["min_Y"]
+                        programm_class = x["class"] or y["class"]
+                        print(programm_class)
                         timeNeeded = (
                             1
                             if timeNeeded.total_seconds() == 0
                             else timeNeeded.total_seconds()
                         )
+                        cph = (placementsNeeded / timeNeeded) * 3600
+                        if cph > 100000:
+                            continue
                         heads = day["Head#"].max()
                         if heads == 4:
                             machine = "m20"
@@ -258,15 +296,18 @@ class MachineDataLoader:
                             "timeNeeded": timeNeeded,
                             "machine": machine,
                             "heads": heads,
-                            "cph": (placementsNeeded / timeNeeded) * 3600,
+                            "cph": cph,
+                            "width": width,
+                            "height": height,
+                            "class": programm_class,
                         }
 
                         dataDict = pd.DataFrame(dataDict, [0])
 
                         outputDay = pd.concat([outputDay, dataDict], ignore_index=True)
                         outputDay.sort_values(by="StartTime", inplace=True)
-                    except:
-                        # print("An error occured. Removing false Data")
+                    except Exception as e:
+                        print("An error occured. Removing false Data")
                         placementTimings.remove(x)
                         raise MyFancyException
                 break
@@ -279,4 +320,14 @@ class MachineDataLoader:
 
 
 if __name__ == "__main__":
-    MachineDataLoader()
+    for m in ["m20", "m10"]:
+        MachineDataLoader(m)
+
+    outputPath = Path(
+        os.getcwd()
+        + os.path.normpath(f"/data/logs/combined/machine_timings_combined.csv")
+    )
+    df = pd.read_csv(outputPath)
+    print(df.describe())
+    plt.scatter(df["placementsNeeded"], df["cph"])
+    plt.show()
