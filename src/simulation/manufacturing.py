@@ -7,6 +7,7 @@ from pathlib import Path
 import concurrent.futures
 import time as tm
 import pandas as pd
+from tqdm import tqdm
 
 PACKAGE_PARENT = "../"
 SCRIPT_DIR = os.path.dirname(
@@ -95,7 +96,7 @@ class Manufacturing:
         # Loop over all blocks in the placementdata
         for block in blocks:
             # calculate the
-            for index, row in block.iterrows():
+            for index, row in tqdm(block.iterrows()):
                 # check for NaN values and continue if found
                 if isNan(row.Code):
                     continue

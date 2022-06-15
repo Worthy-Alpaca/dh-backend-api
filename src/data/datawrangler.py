@@ -274,8 +274,8 @@ class MachineDataLoader:
                         placementsNeeded = y["placement"] - x["placement"]
                         width = y["max_X"] - x["min_X"]
                         height = y["max_Y"] - x["min_Y"]
-                        programm_class = x["class"] or y["class"]
-                        print(programm_class)
+                        programm_class = x["class"].iat[0]
+                        # print(programm_class)
                         timeNeeded = (
                             1
                             if timeNeeded.total_seconds() == 0
