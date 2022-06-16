@@ -5,6 +5,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+import matplotlib
+from imblearn.over_sampling import SMOTE
 import numpy as np
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -225,7 +227,6 @@ class MachinePredictions:
         df = df[
             [
                 "placementsNeeded",
-                "heads",
                 "machine",
                 "width",
                 "height",
@@ -233,21 +234,14 @@ class MachinePredictions:
             ]
         ]
 
-        df[["placementsNeeded", "heads", "width", "height", "timeNeeded"]] = df[
-            ["placementsNeeded", "heads", "width", "height", "timeNeeded"]
+        df[["placementsNeeded", "width", "height", "timeNeeded"]] = df[
+            ["placementsNeeded", "width", "height", "timeNeeded"]
         ].astype(float)
 
         df[["machine"]] = df[["machine"]].astype("category")
 
-        def encode(x):
-            if x == "m10":
-                return 0
-            else:
-                return 1
-
         df["machine"] = df["machine"].cat.codes.values
 
-        df = df.drop(["heads"], axis=1)
         df = df.dropna()
         x = df.drop(["timeNeeded"], axis=1)
         y = df[["timeNeeded"]]
@@ -255,7 +249,7 @@ class MachinePredictions:
         labels = y.to_numpy(dtype=np.float32)
 
         x_train, x_test, y_train, y_test = train_test_split(
-            data, labels, test_size=0.2, random_state=42
+            data, labels, test_size=0.35, random_state=42
         )
         trainDataset = MachineDataSet(x_train, y_train, scale_data)
         trainLoader = DataLoader(
@@ -318,7 +312,7 @@ class MachinePredictions:
 
 if __name__ == "__main__":
     global_string = Path(
-        os.getcwd() + os.path.normpath("/data/logs/all/trainDataTogether.csv")
+        os.getcwd() + os.path.normpath("/data/all/trainDataTogether.csv")
     )
     parameters2 = dict(
         lr=[0.0001, 0.00001],
@@ -327,45 +321,57 @@ if __name__ == "__main__":
         scale=[True, False],
     )
     parameters = dict(
-        lr=[1e-07, 1e-06, 1e-05, 1e-04, 1e-03],
-        batch_size=[10],
-        shuffle=[False],
+        lr=[15e-06],
+        batch_size=[70],
+        shuffle=[True],
         scale=[True],
+        weight_decay=[0.4],
     )
     param_values = [v for v in parameters.values()]
 
     runs = {}
 
-    for lr, batch_size, shuffle, scale in product(*param_values):
-        print(lr, batch_size, shuffle, scale)
+    for lr, batch_size, shuffle, scale, weight_decay in product(*param_values):
+        print(lr, batch_size, shuffle, scale, weight_decay)
         # print(lr, batch_size, shuffle, scale, file=open("output.txt", "a"))
 
-        model = Network(4, [20, 40, 80, 160, 80, 40, 20], 1, p=0.4)
+        model = Network(4, [20, 40, 80, 160, 80, 40, 20], 1, p=0.275)
         predictions = MachinePredictions(global_string, model=model)
         trainLoader, testLoader = predictions.prepareData(
             scale_data=scale, batch_size=batch_size, shuffle=shuffle
         )
 
-        optim_args = {"weight_decay": 0.5, "dampening": 0.1, "momentum": 0.2}
+        optim_args = {"weight_decay": weight_decay, "dampening": 0.32, "momentum": 0.61}
         data1, data2 = predictions.fit(
-            10,
+            5,
             trainLoader,
             testLoader,
             # loss_function=nn.CrossEntropyLoss,
-            # loss_function=nn.L1Loss,
+            loss_function=nn.L1Loss,
             # loss_function=nn.KLDivLoss,
-            loss_function=losses.ComboLoss,
+            # loss_function=losses.FocalTverskyLoss,
             # loss_function=nn.BCELoss,
             optimizer=torch.optim.SGD,
-            # optim_args=optim_args,
+            optim_args=optim_args,
             learning_rate=lr,
         )
         # print(data1, data2, "\n", file=open("output.txt", "a"))
-        runs[f"{lr, batch_size, shuffle, scale}"] = (data1, data2)
-        predictions.plotLoss()
-        predictions.plotAccuracies()
+        runs[f"{lr, batch_size, shuffle, scale, weight_decay}"] = {
+            "train": data1,
+            "test": data2,
+        }
         # predictions.plotTrainIndicators()
-    print(runs, file=open("output.txt", "a"))
-    # predictions.plotLoss()
-    # predictions.plotAccuracies()
-    # predictions.plotTrainIndicators()
+    # print(runs, file=open("output.txt", "a"))
+    fig, axs = plt.subplots(1, 4, figsize=(18, 6))
+    fig.suptitle("Training Accuracy | Testing Accuracy | Training Loss | Testing Loss")
+    for key in runs:
+        axs[0].plot(runs[key]["train"][1], "-o", label=key)
+        axs[1].plot(runs[key]["test"][1], "-o", label=key)
+        axs[2].plot(runs[key]["train"][0], "-o", label=key)
+        axs[3].plot(runs[key]["test"][0], "-o", label=key)
+    axs[0].legend(loc="upper left")
+    axs[1].legend(loc="upper left")
+    axs[2].legend(loc="upper left")
+    axs[3].legend(loc="upper left")
+
+    plt.show()
