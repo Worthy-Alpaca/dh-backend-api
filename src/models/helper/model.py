@@ -169,36 +169,41 @@ class Network(torch.nn.Module):
         super(Network, self).__init__()
         self.input_size = input_size
         self.output_size = output_size
-        self.act1 = torch.nn.ReLU()
+        self.act1 = torch.nn.GELU()
+        self.act2 = torch.nn.GELU()
+        self.act3 = torch.nn.GELU()
+        self.act4 = torch.nn.GELU()
         self.hid1 = torch.nn.Linear(input_size, 7)  # 8-(10-10)-1
-        self.lstm1 = torch.nn.GRU(7, 14, dropout=p, num_layers=3)
-        self.hid2 = torch.nn.Linear(7, 10)
-        self.lstm2 = torch.nn.RNN(10, 5, dropout=p, num_layers=2)
+        self.lstm1 = torch.nn.GRU(7, 14, dropout=p, num_layers=4)
+        self.hid2 = torch.nn.Linear(14, 10)
+        self.lstm2 = torch.nn.RNN(10, 5, dropout=p, num_layers=4)
         self.oupt = torch.nn.Linear(5, output_size)
         self.dropout1 = nn.Dropout(p)
         self.dropout2 = nn.Dropout(p)
+        self.dropout3 = nn.Dropout(p)
         torch.nn.init.xavier_uniform_(self.hid1.weight)
-        # torch.nn.init.zeros_(self.hid1.bias)
+        torch.nn.init.zeros_(self.hid1.bias)
         torch.nn.init.xavier_uniform_(self.hid2.weight)
-        # torch.nn.init.zeros_(self.hid2.bias)
+        torch.nn.init.zeros_(self.hid2.bias)
         torch.nn.init.xavier_uniform_(self.oupt.weight)
-        # torch.nn.init.zeros_(self.oupt.bias)
+        torch.nn.init.zeros_(self.oupt.bias)
 
     def forward(self, x):
         z = self.act1(x)
         z = self.hid1(z)
         z = self.dropout1(z)
-        # z = self.act1(z)
-        # z, _ = self.lstm1(z)
-        # z = self.dropout(z)
         z = self.act1(z)
-        z = self.hid2(z)
+        z, _ = self.lstm1(z)
         z = self.dropout2(z)
-        z = self.act1(z)
+        z = self.act2(z)
+        z = self.hid2(z)
+        z = self.dropout3(z)
+        z = self.act3(z)
         z, _ = self.lstm2(z)
-        z = self.act1(z)
-        z = self.oupt(z)  # no activation
-        return z  # torch.sigmoid(z)
+        z = self.dropout2(z)
+        z = self.act4(z)
+        # z = self.oupt(z)  # no activation
+        return self.oupt(z)  # torch.sigmoid(z)
 
 
 if __name__ == "__main__":
