@@ -3,4 +3,5 @@ settings.ini
 __pycache__
 .vscode
 output.txt
+best_trials.txt
 /env
