@@ -1,4 +1,3 @@
-from turtle import forward
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -164,7 +163,7 @@ class Network7(nn.Module):
         return x
 
 
-class Network(torch.nn.Module):
+class Network3(torch.nn.Module):
     def __init__(self, input_size: int, layers, output_size, p=0.2):
         super(Network, self).__init__()
         self.input_size = input_size
@@ -174,36 +173,81 @@ class Network(torch.nn.Module):
         self.act3 = torch.nn.GELU()
         self.act4 = torch.nn.GELU()
         self.hid1 = torch.nn.Linear(input_size, 7)  # 8-(10-10)-1
-        self.lstm1 = torch.nn.GRU(7, 14, dropout=p, num_layers=4)
-        self.hid2 = torch.nn.Linear(14, 10)
-        self.lstm2 = torch.nn.RNN(10, 5, dropout=p, num_layers=4)
-        self.oupt = torch.nn.Linear(5, output_size)
+        self.lstm1 = torch.nn.RNN(7, 14, dropout=p, num_layers=3)
+        self.hid2 = torch.nn.Linear(7, 14)
+        self.lstm2 = torch.nn.GRU(10, 5, dropout=p, num_layers=3)
+        self.hid3 = torch.nn.Linear(14, 20)
+        self.hid4 = torch.nn.Linear(20, 14)
+        self.oupt = torch.nn.Linear(14, output_size)
         self.dropout1 = nn.Dropout(p)
         self.dropout2 = nn.Dropout(p)
         self.dropout3 = nn.Dropout(p)
-        torch.nn.init.xavier_uniform_(self.hid1.weight)
-        torch.nn.init.zeros_(self.hid1.bias)
-        torch.nn.init.xavier_uniform_(self.hid2.weight)
-        torch.nn.init.zeros_(self.hid2.bias)
-        torch.nn.init.xavier_uniform_(self.oupt.weight)
-        torch.nn.init.zeros_(self.oupt.bias)
+        # torch.nn.init.xavier_uniform_(self.hid1.weight)
+        # torch.nn.init.zeros_(self.hid1.bias)
+        # torch.nn.init.xavier_uniform_(self.hid2.weight)
+        # torch.nn.init.zeros_(self.hid2.bias)
+        # torch.nn.init.xavier_uniform_(self.oupt.weight)
+        # torch.nn.init.zeros_(self.oupt.bias)
 
     def forward(self, x):
         z = self.act1(x)
         z = self.hid1(z)
         z = self.dropout1(z)
+        # z = self.act1(z)
+        # z, _ = self.lstm1(z)
+        # z = self.dropout2(z)
         z = self.act1(z)
-        z, _ = self.lstm1(z)
+        z = self.hid2(z)
+        z = self.dropout1(z)
+        z = self.act2(z)
+        z = self.hid3(z)
+        z = self.dropout2(z)
+        z = self.act3(z)
+        z = self.hid4(z)
+        # z, _ = self.lstm2(z)
         z = self.dropout2(z)
         z = self.act2(z)
-        z = self.hid2(z)
-        z = self.dropout3(z)
-        z = self.act3(z)
-        z, _ = self.lstm2(z)
-        z = self.dropout2(z)
-        z = self.act4(z)
-        # z = self.oupt(z)  # no activation
-        return self.oupt(z)  # torch.sigmoid(z)
+        z = self.oupt(z)  # no activation
+        return torch.sigmoid(z)  # torch.sigmoid(z)
+
+
+class Network(nn.Module):
+    def __init__(
+        self,
+        in_features,
+        out_features,
+        n_layers,
+        n_units_layers,
+        p=0.2,
+        activation=nn.GELU,
+    ) -> None:
+        super(Network, self).__init__()
+        self.input_size = in_features
+        self.output_size = out_features
+        layers = []
+
+        self.recurrent = nn.GRU(in_features, 7, num_layers=3, dropout=p)
+        running_features = 7
+
+        for i in range(n_layers):
+            layers.append(activation())
+            running_layer = nn.Linear(running_features, n_units_layers[i])
+            torch.nn.init.xavier_uniform_(
+                running_layer.weight, gain=nn.init.calculate_gain("relu", 0.2)
+            )
+            torch.nn.init.zeros_(running_layer.bias)
+            layers.append(running_layer)
+            layers.append(nn.Dropout(p))
+            running_features = n_units_layers[i]
+
+        layers.append(nn.Linear(running_features, out_features))
+        layers.append(nn.Sigmoid())
+
+        self.layers = nn.Sequential(*layers)
+
+    def forward(self, x):
+        x, _ = self.recurrent(x)
+        return self.layers(x)
 
 
 if __name__ == "__main__":
