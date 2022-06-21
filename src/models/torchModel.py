@@ -7,7 +7,6 @@ from sklearn.metrics import r2_score
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import matplotlib
-from imblearn.over_sampling import SMOTE
 import numpy as np
 import torch.nn as nn
 from torch.utils.data import DataLoader
