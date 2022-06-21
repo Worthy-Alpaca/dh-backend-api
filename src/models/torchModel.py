@@ -84,14 +84,14 @@ class MachinePredictions:
         data, labels = next(iter(trainloader))
 
         self.writer.add_graph(self.model, data.to(self.device))
-        # summary(self.model, input_size=data.shape)
+        summary(self.model, input_size=data.shape)
         best_accu = 0
         for epoch in range(epochs):
             self.__train(epoch, trainloader)
             test_accu = self.__test(epoch, testloader)
-            """trial.report(test_accu, epoch)
+            trial.report(test_accu, epoch)
             if trial.should_prune():
-                raise optuna.exceptions.TrialPruned()"""
+                raise optuna.exceptions.TrialPruned()
         self.writer.close()
 
         return (self._train_losses, self._train_accuracies), (
@@ -344,13 +344,14 @@ if __name__ == "__main__":
             "n_units_layers": [],
             "learning_rate": trial.suggest_loguniform("learning_rate", 1e-6, 9e-2),
             "optimizer": trial.suggest_categorical("optimizer", ["SGD", "ASGD"]),
+            "scale_data": trial.suggest_categorical("scale_data", [True, False]),
             "loss_function": trial.suggest_categorical(
                 "loss_function",
                 [
                     # "FocalTverskyLoss",
-                    "KLDivLoss",
-                    "ComboLoss",
-                    # "L1Loss",
+                    # "KLDivLoss",
+                    # "ComboLoss",
+                    "L1Loss",
                     # "HuberLoss",
                 ],
             ),
@@ -369,11 +370,11 @@ if __name__ == "__main__":
                 trial.suggest_int("n_units_l{}".format(i), 4, 70)
             )
 
-        loss, accuracy = test_model(params, plotModel=False)
+        loss, accuracy = test_model(params, trial, plotModel=False)
 
-        return loss, accuracy
+        return loss
 
-    def test_model(params: dict, plotModel: bool = False):
+    def test_model(params: dict, trial, plotModel: bool = False):
 
         try:
             model = Network(
@@ -394,7 +395,9 @@ if __name__ == "__main__":
             )
         predictions = MachinePredictions(DATA_PATH, model=model)
         trainLoader, testLoader = predictions.prepareData(
-            scale_data=True, batch_size=params["batch_size"], shuffle=True
+            scale_data=params["scale_data"],
+            batch_size=params["batch_size"],
+            shuffle=True,
         )
 
         try:
@@ -416,6 +419,7 @@ if __name__ == "__main__":
             optimizer=getattr(torch.optim, params["optimizer"]),
             optim_args=optim_args,
             learning_rate=params["learning_rate"],
+            trial=trial,
         )
 
         if plotModel == False:
@@ -444,9 +448,9 @@ if __name__ == "__main__":
     # test_model(paramsRun, plotModel=True)
     # exit()
     study = optuna.create_study(
-        directions=["minimize", "maximize"],
-        # direction="minimize",
-        sampler=optuna.samplers.NSGAIISampler(),
+        # directions=["minimize", "maximize"],
+        direction="minimize",
+        sampler=optuna.samplers.TPESampler(),
         pruner=optuna.pruners.SuccessiveHalvingPruner(),
     )
     study.optimize(
@@ -456,19 +460,19 @@ if __name__ == "__main__":
         catch=(RuntimeError, RuntimeWarning, TypeError),
     )
 
-    best_trials = study.best_trials
+    best_trial = study.best_trial
     optuna.visualization.matplotlib.plot_param_importances(
         study, target=lambda t: t.values[0]
     )
     plt.show()
-    for best_trial in best_trials:
-        print("==== NEW TRIAL ====")
-        print("==== NEW TRIAL ====", file=open("best_trials.txt", "a"))
-        for key, value in best_trial.params.items():
-            print("{}: {}".format(key, value), file=open("best_trials.txt", "a"))
-            print("{}: {}".format(key, value))
+    # for best_trial in best_trials:
+    print("==== NEW TRIAL ====")
+    print("==== NEW TRIAL ====", file=open("best_trials.txt", "a"))
+    for key, value in best_trial.params.items():
+        print("{}: {}".format(key, value), file=open("best_trials.txt", "a"))
+        print("{}: {}".format(key, value))
 
-        test_model(best_trial.params, plotModel=True)
+    test_model(best_trial.params, plotModel=True)
 
     """parameters2 = dict(
         lr=[0.0001, 0.00001],

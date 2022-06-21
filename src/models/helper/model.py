@@ -225,29 +225,36 @@ class Network(nn.Module):
         self.input_size = in_features
         self.output_size = out_features
         layers = []
+        layers2 = []
 
         self.recurrent = nn.GRU(in_features, 7, num_layers=3, dropout=p)
-        running_features = 7
+        running_features = in_features
+
+        dropOut1 = nn.Dropout(p)
+        activation1 = activation()
 
         for i in range(n_layers):
-            layers.append(activation())
+            layers.append(nn.AdaptiveMaxPool1d(running_features))
+            layers.append(activation1)
             running_layer = nn.Linear(running_features, n_units_layers[i])
-            torch.nn.init.xavier_uniform_(
-                running_layer.weight, gain=nn.init.calculate_gain("relu", 0.2)
+            torch.nn.init.orthogonal_(
+                running_layer.weight,  # gain=nn.init.calculate_gain("relu", 0.2)
             )
             torch.nn.init.zeros_(running_layer.bias)
             layers.append(running_layer)
-            layers.append(nn.Dropout(p))
+            layers.append(dropOut1)
             running_features = n_units_layers[i]
 
-        layers.append(nn.Linear(running_features, out_features))
-        layers.append(nn.Sigmoid())
+        layers2.append(nn.Linear(running_features, out_features))
+        # layers2.append(nn.Sigmoid())
 
         self.layers = nn.Sequential(*layers)
+        self.layers2 = nn.Sequential(*layers2)
 
     def forward(self, x):
-        x, _ = self.recurrent(x)
-        return self.layers(x)
+        # x, _ = self.recurrent(x)
+        x = self.layers(x)
+        return self.layers2(x)
 
 
 if __name__ == "__main__":
