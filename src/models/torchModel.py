@@ -1,5 +1,6 @@
 from pathlib import Path
 from types import FunctionType
+from typing import Any
 import torch
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
@@ -15,6 +16,7 @@ import pandas as pd
 from datetime import datetime
 
 from itertools import product
+
 
 import os
 
@@ -48,6 +50,7 @@ class MachinePredictions:
         optimizer: FunctionType = torch.optim.Adam,
         loss_function: FunctionType = nn.MSELoss,
         optim_args: dict = {},
+        trial=Any,
     ):
         """
         - `epochs` : Number of epochs to train
@@ -56,6 +59,8 @@ class MachinePredictions:
         - `learning_rate` : learning rate to be applied
         - `optimizer` : optimizer function -> default is ADAM
         - `loss_function` : loss function -> default is MSE Loss
+
+        > Returns: (train losses, train accuracies), (test losses, test accuracies)
         """
         self.epochs = epochs
         self._train_losses = []
@@ -64,7 +69,9 @@ class MachinePredictions:
         self._test_accuracies = []
         self._learning_rate = learning_rate
         self.optimizer = optimizer(
-            self.model.parameters(), lr=learning_rate, **optim_args
+            self.model.parameters(),
+            lr=learning_rate,
+            **optim_args,
         )
         self._loss_function = loss_function()
         self.scheduler1 = ExponentialLR(self.optimizer, gamma=0.9)
@@ -75,28 +82,18 @@ class MachinePredictions:
         self.run_name = f"{self.optimizer.__class__.__name__}_{self._loss_function.__class__.__name__}_{self.epochs}@{timestamp}"
         self.writer = SummaryWriter(f"./data/tensorboard/runs/{self.run_name}")
         data, labels = next(iter(trainloader))
-        print(data.shape)
+
         self.writer.add_graph(self.model, data.to(self.device))
-        summary(self.model, input_size=data.shape)
+        # summary(self.model, input_size=data.shape)
         best_accu = 0
-        """with torch.profiler.profile(
-            schedule=torch.profiler.schedule(wait=1, warmup=1, active=3, repeat=2),
-            on_trace_ready=torch.profiler.tensorboard_trace_handler(
-                "./data/logs/model/"
-            ),
-            record_shapes=True,
-            profile_memory=True,
-            with_stack=True,
-        ) as prof:"""
         for epoch in range(epochs):
             self.__train(epoch, trainloader)
             test_accu = self.__test(epoch, testloader)
-            # prof.step()
-            """if test_accu > best_accu:
-                    self.saveModel(epoch)
-                    best_accu = test_accu"""
-            # self.writer.flush()
+            """trial.report(test_accu, epoch)
+            if trial.should_prune():
+                raise optuna.exceptions.TrialPruned()"""
         self.writer.close()
+
         return (self._train_losses, self._train_accuracies), (
             self._test_losses,
             self._test_accuracies,
@@ -122,7 +119,8 @@ class MachinePredictions:
         correct = 0
         total = 0
         with torch.no_grad():
-            for data in tqdm(testloader, ascii=True):
+            for data in testloader:
+                # for data in tqdm(testloader, ascii=True):
                 inputs, targets = data[0].to(self.device), data[1].to(self.device)
                 inputs, targets = inputs.float(), targets.float()
                 targets = targets.reshape((targets.shape[0], self.model.output_size))
@@ -139,7 +137,7 @@ class MachinePredictions:
                 correct += torch.sum(predicted == targets.data).float()
 
         test_loss = current_loss / len(testloader)
-        accu = 100.0 * correct / float(total)
+        accu = correct / float(total)
 
         self._test_losses.append(test_loss)
         self._test_accuracies.append(accu.item())
@@ -150,26 +148,31 @@ class MachinePredictions:
         return accu.item()
 
     def __train(self, epoch: int, trainloader: DataLoader):
-        print(f"\nStarting epoch {epoch+1} / {self.epochs} ")
+        # print(f"\nStarting epoch {epoch+1} / {self.epochs} ")
         self.model.train()
         current_loss = 0.0
         correct = 0
         total = 0
 
-        for data in tqdm(trainloader, ascii=True):
+        # for data in tqdm(trainloader, ascii=True):
+        for data in trainloader:
             inputs, targets = data[0].to(self.device), data[1].to(self.device)
-            # inputs, targets = data
+
             inputs, targets = inputs.float(), targets.float()
             targets = targets.reshape((targets.shape[0], self.model.output_size))
-
-            self.optimizer.zero_grad()
 
             outputs = self.model(inputs)
 
             loss = self._loss_function(outputs, targets)
             # loss = torch.autograd.Variable(loss, requires_grad=True)
 
+            l2_lambda = 0.001
+            l2_norm = sum(p.pow(2.0).sum() for p in self.model.parameters())
+
+            loss = loss + l2_lambda * l2_norm
+
             # self.writer.flush()
+            self.optimizer.zero_grad()
             loss.backward()
 
             self.optimizer.step()
@@ -183,7 +186,7 @@ class MachinePredictions:
         # self.__adjust_learning_rate(epoch)
         self.scheduler1.step()
         self.scheduler2.step()
-        accu = 100.0 * correct / float(total)
+        accu = correct / float(total)
         train_loss = current_loss / len(trainloader)
         self._train_losses.append(train_loss)
         self._train_accuracies.append(accu.item())
@@ -249,7 +252,7 @@ class MachinePredictions:
         labels = y.to_numpy(dtype=np.float32)
 
         x_train, x_test, y_train, y_test = train_test_split(
-            data, labels, test_size=0.35, random_state=42
+            data, labels, test_size=0.25, random_state=42
         )
         trainDataset = MachineDataSet(x_train, y_train, scale_data)
         trainLoader = DataLoader(
@@ -311,10 +314,163 @@ class MachinePredictions:
 
 
 if __name__ == "__main__":
-    global_string = Path(
-        os.getcwd() + os.path.normpath("/data/all/trainDataTogether.csv")
+    DATA_PATH = Path(os.getcwd() + os.path.normpath("/data/all/trainDataTogether.csv"))
+
+    paramsRun = {
+        "n_layers": 6,
+        "learning_rate": 0.08245042333799399,
+        "optimizer": "SGD",
+        "loss_function": "FocalTverskyLoss",
+        "batch_size": 68,
+        "weight_decay": 0.001277860711937618,
+        "dropout": 0.4419852282783314,
+        "n_units_l0": 64,
+        "n_units_l1": 10,
+        "n_units_l2": 62,
+        "n_units_l3": 51,
+        "n_units_l4": 33,
+        "n_units_l5": 21,
+        "activation": "GELU",
+    }
+
+    import optuna
+
+    EPOCHS = 5
+    RUNS = {}
+
+    def objective(trial):
+        params = {
+            "n_layers": trial.suggest_int("n_layers", 3, 7),
+            "n_units_layers": [],
+            "learning_rate": trial.suggest_loguniform("learning_rate", 1e-6, 9e-2),
+            "optimizer": trial.suggest_categorical("optimizer", ["SGD", "ASGD"]),
+            "loss_function": trial.suggest_categorical(
+                "loss_function",
+                [
+                    # "FocalTverskyLoss",
+                    "KLDivLoss",
+                    "ComboLoss",
+                    # "L1Loss",
+                    # "HuberLoss",
+                ],
+            ),
+            "activation": trial.suggest_categorical(
+                "activation", ["ReLU", "Sigmoid", "ELU"]
+            ),
+            "batch_size": trial.suggest_int("batch_size", 45, 70),
+            "weight_decay": trial.suggest_loguniform("weight_decay", 9e-5, 9e-2),
+            "dampening": trial.suggest_loguniform("dampening", 1e-1, 7e-1),
+            "momentum": trial.suggest_loguniform("momentum", 1e-1, 7e-1),
+            "dropout": trial.suggest_loguniform("dropout", 0.2, 0.5),
+        }
+
+        for i in range(params["n_layers"]):
+            params["n_units_layers"].append(
+                trial.suggest_int("n_units_l{}".format(i), 4, 70)
+            )
+
+        loss, accuracy = test_model(params, plotModel=False)
+
+        return loss, accuracy
+
+    def test_model(params: dict, plotModel: bool = False):
+
+        try:
+            model = Network(
+                4, 1, params["n_layers"], params["n_units_layers"], p=params["dropout"]
+            )
+        except:
+            params["n_units_layers"] = []
+            for i in range(params["n_layers"]):
+                params["n_units_layers"].append(params[f"n_units_l{i}"])
+
+            model = Network(
+                4,
+                1,
+                params["n_layers"],
+                params["n_units_layers"],
+                p=params["dropout"],
+                activation=getattr(torch.nn, params["activation"]),
+            )
+        predictions = MachinePredictions(DATA_PATH, model=model)
+        trainLoader, testLoader = predictions.prepareData(
+            scale_data=True, batch_size=params["batch_size"], shuffle=True
+        )
+
+        try:
+            params["loss_function"] = getattr(nn, params["loss_function"])
+        except:
+            params["loss_function"] = getattr(losses, params["loss_function"])
+
+        # optim_args = {"weight_decay": weight_decay}
+        optim_args = {
+            "weight_decay": params["weight_decay"],
+            # "dampening": params["dampening"],
+            # "momentum": params["momentum"],
+        }
+        train, test = predictions.fit(
+            EPOCHS,
+            trainLoader,
+            testLoader,
+            loss_function=params["loss_function"],
+            optimizer=getattr(torch.optim, params["optimizer"]),
+            optim_args=optim_args,
+            learning_rate=params["learning_rate"],
+        )
+
+        if plotModel == False:
+            return sum(test[0]) / EPOCHS, sum(test[1]) / EPOCHS
+        else:
+            RUNS[predictions.run_name] = {
+                "train": train,
+                "test": test,
+            }
+
+            fig, axs = plt.subplots(1, 4, figsize=(18, 6))
+            fig.suptitle(
+                "Training Accuracy | Testing Accuracy | Training Loss | Testing Loss"
+            )
+            for key in RUNS:
+                axs[0].plot(RUNS[key]["train"][1], "-o", label=key)
+                axs[1].plot(RUNS[key]["test"][1], "-o", label=key)
+                axs[2].plot(RUNS[key]["train"][0], "-o", label=key)
+                axs[3].plot(RUNS[key]["test"][0], "-o", label=key)
+            axs[0].legend(loc="upper left")
+            axs[1].legend(loc="upper left")
+            axs[2].legend(loc="upper left")
+            axs[3].legend(loc="upper left")
+            plt.show()
+
+    # test_model(paramsRun, plotModel=True)
+    # exit()
+    study = optuna.create_study(
+        directions=["minimize", "maximize"],
+        # direction="minimize",
+        sampler=optuna.samplers.NSGAIISampler(),
+        pruner=optuna.pruners.SuccessiveHalvingPruner(),
     )
-    parameters2 = dict(
+    study.optimize(
+        objective,
+        n_trials=30,
+        show_progress_bar=True,
+        catch=(RuntimeError, RuntimeWarning, TypeError),
+    )
+
+    best_trials = study.best_trials
+    optuna.visualization.matplotlib.plot_param_importances(
+        study, target=lambda t: t.values[0]
+    )
+    plt.show()
+    for best_trial in best_trials:
+        print("==== NEW TRIAL ====")
+        print("==== NEW TRIAL ====", file=open("best_trials.txt", "a"))
+        for key, value in best_trial.params.items():
+            print("{}: {}".format(key, value), file=open("best_trials.txt", "a"))
+            print("{}: {}".format(key, value))
+
+        test_model(best_trial.params, plotModel=True)
+
+    """parameters2 = dict(
         lr=[0.0001, 0.00001],
         batch_size=[20, 15],
         shuffle=[True],
@@ -322,34 +478,43 @@ if __name__ == "__main__":
     )
     parameters = dict(
         lr=[15e-06],
-        batch_size=[70],
+        batch_size=[36],
         shuffle=[True],
         scale=[True],
         weight_decay=[0.4],
+        dampening=[0.32],
+        momentum=[0.3],
     )
     param_values = [v for v in parameters.values()]
 
     runs = {}
 
-    for lr, batch_size, shuffle, scale, weight_decay in product(*param_values):
-        print(lr, batch_size, shuffle, scale, weight_decay)
+    for lr, batch_size, shuffle, scale, weight_decay, dampening, momentum in product(
+        *param_values
+    ):
+        print(lr, batch_size, shuffle, scale, weight_decay, dampening, momentum)
         # print(lr, batch_size, shuffle, scale, file=open("output.txt", "a"))
 
-        model = Network(4, [20, 40, 80, 160, 80, 40, 20], 1, p=0.275)
+        model = Network(4, [20, 40, 80, 160, 80, 40, 20], 1, p=0.5)
         predictions = MachinePredictions(global_string, model=model)
         trainLoader, testLoader = predictions.prepareData(
             scale_data=scale, batch_size=batch_size, shuffle=shuffle
         )
 
-        optim_args = {"weight_decay": weight_decay, "dampening": 0.32, "momentum": 0.61}
+        # optim_args = {"weight_decay": weight_decay}
+        optim_args = {
+            "weight_decay": weight_decay,
+            "dampening": dampening,
+            "momentum": momentum,
+        }
         data1, data2 = predictions.fit(
             5,
             trainLoader,
             testLoader,
             # loss_function=nn.CrossEntropyLoss,
-            loss_function=nn.L1Loss,
+            # loss_function=nn.L1Loss,
             # loss_function=nn.KLDivLoss,
-            # loss_function=losses.FocalTverskyLoss,
+            loss_function=losses.FocalTverskyLoss,
             # loss_function=nn.BCELoss,
             optimizer=torch.optim.SGD,
             optim_args=optim_args,
@@ -374,4 +539,4 @@ if __name__ == "__main__":
     axs[2].legend(loc="upper left")
     axs[3].legend(loc="upper left")
 
-    plt.show()
+    plt.show()"""
