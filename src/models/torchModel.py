@@ -29,7 +29,7 @@ import helper.losses as losses
 
 
 class MachinePredictions:
-    def __init__(self, dataPath: str | Path, model: torch.nn.Module) -> None:
+    def __init__(self, dataPath: Path, model: torch.nn.Module) -> None:
         torch.manual_seed(42)
         self.dataPath = dataPath
         self.model = model
@@ -313,6 +313,8 @@ class MachinePredictions:
 
 
 if __name__ == "__main__":
+    print(os.getcwd())
+    exit()
     DATA_PATH = Path(os.getcwd() + os.path.normpath("/data/all/trainDataTogether.csv"))
 
     paramsRun = {
