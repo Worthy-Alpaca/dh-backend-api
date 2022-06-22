@@ -339,7 +339,7 @@ if __name__ == "__main__":
 
     def objective(trial):
         params = {
-            "n_layers": trial.suggest_int("n_layers", 3, 7),
+            "n_layers": trial.suggest_int("n_layers", 1, 5),
             "n_units_layers": [],
             "learning_rate": trial.suggest_loguniform("learning_rate", 1e-6, 9e-2),
             "optimizer": trial.suggest_categorical("optimizer", ["SGD", "ASGD"]),
@@ -374,7 +374,7 @@ if __name__ == "__main__":
         return loss
 
     def test_model(params: dict, trial, plotModel: bool = False):
-
+        print(params)
         try:
             model = Network(
                 4, 1, params["n_layers"], params["n_units_layers"], p=params["dropout"]
@@ -471,7 +471,7 @@ if __name__ == "__main__":
         print("{}: {}".format(key, value), file=open("best_trials.txt", "a"))
         print("{}: {}".format(key, value))
 
-    test_model(best_trial.params, plotModel=True)
+    test_model(best_trial.params, None, plotModel=True)
 
     """parameters2 = dict(
         lr=[0.0001, 0.00001],

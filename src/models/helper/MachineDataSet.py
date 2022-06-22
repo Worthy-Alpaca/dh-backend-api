@@ -37,8 +37,8 @@ class MachineDataSet(Dataset):
 
                 # X = (X - np.min(X)) / (np.max(X) - np.min(X))
                 # y = (y - np.min(y)) / (np.max(y) - np.min(y))
-                # X = MinMaxScaler().fit_transform(X)
-                # y = MinMaxScaler().fit_transform(y)
+                X = MinMaxScaler().fit_transform(X)
+                y = MinMaxScaler().fit_transform(y)
             self.X = torch.from_numpy(X)
             self.y = torch.from_numpy(y)
         else:

@@ -227,7 +227,7 @@ class Network(nn.Module):
         layers = []
         layers2 = []
 
-        self.recurrent = nn.GRU(in_features, 7, num_layers=3, dropout=p)
+        # self.recurrent = nn.GRU(in_features, 7, num_layers=3, dropout=p)
         running_features = in_features
 
         dropOut1 = nn.Dropout(p)
@@ -243,6 +243,7 @@ class Network(nn.Module):
             torch.nn.init.zeros_(running_layer.bias)
             layers.append(running_layer)
             layers.append(dropOut1)
+            layers.append(nn.BatchNorm1d(n_units_layers[i]))
             running_features = n_units_layers[i]
 
         layers2.append(nn.Linear(running_features, out_features))
