@@ -10,7 +10,7 @@ import pandas as pd
 from datetime import datetime
 import optuna
 from torchmetrics.functional import mean_absolute_error
-
+from sklearn.preprocessing import MinMaxScaler
 import os
 
 from torch.utils.tensorboard import SummaryWriter
@@ -27,6 +27,8 @@ class TrainModel:
         self.dataPath = dataPath
         self.model = model
         self.device = "cpu"
+        self.scaleX = MinMaxScaler()
+        self.scaleY = MinMaxScaler()
         if torch.cuda.is_available():
             self.device = "cuda:0"
             if torch.cuda.device_count() > 1:
@@ -169,7 +171,6 @@ class TrainModel:
         # assigning collection variables
         total_acc_val = 0
         total_loss_val = 0
-
         # turning off gradient calculations
         with torch.no_grad():
             # looping over batches in testLoader
@@ -224,6 +225,33 @@ class TrainModel:
             except:
                 continue
 
+    def predict(self, data: np.ndarray):
+        data = data.reshape(1, -1)
+        if self.scale_data:
+            data = self.scaleX.transform(data)
+        data = torch.from_numpy(data)
+        prediction = self.model(data.float())
+        prediction = prediction.detach().numpy()
+        if self.scale_data:
+            prediction = self.scaleData(prediction, inverse=True)
+
+        return prediction
+
+    def scaleData(self, data, labels=None, inverse=False):
+        """
+        Scales input data. Also allows for inverse transformation
+        """
+        if inverse:
+            return self.scaleY.inverse_transform(data)
+        else:
+            if type(labels) == np.ndarray:
+                self.scaleY.fit(labels)
+                self.scaleX.fit(data)
+                return self.scaleY.transform(labels), self.scaleX.transform(data)
+            else:
+                self.scaleX.fit(data)
+                return self.scaleX.transform(data)
+
     def prepareData(
         self, scale_data: bool = True, batch_size: int = 15, shuffle: bool = True
     ):
@@ -237,6 +265,7 @@ class TrainModel:
         """
         # adding batch size to class variables
         self.batch_size = batch_size
+        self.scale_data = scale_data
         # loading dataset
         df = pd.read_csv(self.dataPath, low_memory=False, encoding="unicode_escape")
         # pulling only the needed features
@@ -264,16 +293,19 @@ class TrainModel:
         # converting to numpy arrays
         data = x.to_numpy(dtype=np.float32)
         labels = y.to_numpy(dtype=np.float32)
+        # scaling Data
+        if scale_data:
+            labels, data = self.scaleData(data, labels)
         # splitting the data into training and validation sets
         x_train, x_test, y_train, y_test = train_test_split(
             data, labels, test_size=0.25, random_state=42
         )
         # converting to torch Datasets and adding to Dataloader
-        trainDataset = MachineDataSet(x_train, y_train, scale_data)
+        trainDataset = MachineDataSet(x_train, y_train)
         trainLoader = DataLoader(
             trainDataset, batch_size=batch_size, shuffle=shuffle, num_workers=1
         )
-        testDataset = MachineDataSet(x_test, y_test, scale_data)
+        testDataset = MachineDataSet(x_test, y_test)
         testLoader = DataLoader(
             testDataset, batch_size=batch_size, shuffle=False, num_workers=1
         )
@@ -288,4 +320,7 @@ if __name__ == "__main__":
 
     trainModel = TrainModel(DATA_PATH, model)
     trainLoader, testLoader = trainModel.prepareData()
-    trainModel.fit(5, trainLoader, testLoader, show_summary=True)
+    trainModel.fit(2, trainLoader, testLoader, show_summary=True)
+    data = np.array([308, 1, 306, 500])
+    pred = trainModel.predict(data)
+    print(pred)

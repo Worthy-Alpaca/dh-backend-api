@@ -11,34 +11,12 @@ import os
 
 
 class MachineDataSet(Dataset):
-    def __init__(self, X, y, scale_data=True) -> None:
+    def __init__(
+        self,
+        X,
+        y,
+    ) -> None:
         if not torch.is_tensor(X) and not torch.is_tensor(y):
-            # Apply scaling if necessary
-            # plt.plot(X)
-            # plt.show()
-            if scale_data:
-                scaler = MinMaxScaler()
-                scaler.fit(X)
-                # X = scaler.transform(X)
-                # plt.plot(normalized_X)
-                # plt.show()
-                # standardized_X = StandardScaler().fit_transform(X)
-                # plt.plot(standardized_X)
-                # plt.show()
-
-                # pyplot.subplot(211)
-                # pyplot.hist(standardized_X[:, 0])
-                # pyplot.subplot(212)
-                # pyplot.hist(standardized_X[:, 1])
-                # pyplot.show()
-                # histogram of target variable
-                # pyplot.hist(y)
-                # pyplot.show()
-
-                # X = (X - np.min(X)) / (np.max(X) - np.min(X))
-                # y = (y - np.min(y)) / (np.max(y) - np.min(y))
-                X = MinMaxScaler().fit_transform(X)
-                y = MinMaxScaler().fit_transform(y)
             self.X = torch.from_numpy(X)
             self.y = torch.from_numpy(y)
         else:

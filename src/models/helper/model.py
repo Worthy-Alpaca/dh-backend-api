@@ -247,7 +247,7 @@ class Network(nn.Module):
             running_features = n_units_layers[i]
 
         layers2.append(nn.Linear(running_features, out_features))
-        # layers2.append(nn.Sigmoid())
+        layers2.append(nn.Sigmoid())
 
         self.layers = nn.Sequential(*layers)
         self.layers2 = nn.Sequential(*layers2)
