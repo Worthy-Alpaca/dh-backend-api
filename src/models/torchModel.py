@@ -313,8 +313,6 @@ class MachinePredictions:
 
 
 if __name__ == "__main__":
-    print(os.getcwd())
-    exit()
     DATA_PATH = Path(os.getcwd() + os.path.normpath("/data/all/trainDataTogether.csv"))
 
     paramsRun = {
@@ -336,7 +334,7 @@ if __name__ == "__main__":
 
     import optuna
 
-    EPOCHS = 5
+    EPOCHS = 10
     RUNS = {}
 
     def objective(trial):
@@ -452,7 +450,7 @@ if __name__ == "__main__":
         # directions=["minimize", "maximize"],
         direction="minimize",
         sampler=optuna.samplers.TPESampler(),
-        pruner=optuna.pruners.SuccessiveHalvingPruner(),
+        pruner=optuna.pruners.HyperbandPruner(),
     )
     study.optimize(
         objective,
