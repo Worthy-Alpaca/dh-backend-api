@@ -1,5 +1,14 @@
 fastapi==0.78.0
+matplotlib==3.5.2
 numpy==1.22.3
+optuna==2.10.1
 pandas==1.4.2
 pydantic==1.9.0
+scikit_learn==1.1.1
+scipy==1.8.1
+seaborn==0.11.2
+torch==1.11.0+cu113
+torchinfo==1.7.0
+torchmetrics==0.9.1
+tqdm==4.64.0
 uvicorn==0.17.6
