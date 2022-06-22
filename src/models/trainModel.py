@@ -9,7 +9,8 @@ from torch.utils.data import DataLoader
 import pandas as pd
 from datetime import datetime
 import optuna
-
+from sklearn.metrics import r2_score
+from torchmetrics.functional import r2_score
 
 import os
 
@@ -72,7 +73,7 @@ class TrainModel:
         )
         self.loss_function = loss_function()
         # creating Learning Rate adjuster
-        self.scheduler1 = ExponentialLR(self.optimizer, gamma=0.89)
+        self.scheduler1 = ExponentialLR(self.optimizer, gamma=1e-3)
         self.scheduler2 = MultiStepLR(
             self.optimizer, milestones=[int(epochs / 3), int(epochs * 2 / 3)]
         )
@@ -122,6 +123,9 @@ class TrainModel:
             train_input = train_input.to(self.device).float()
             train_target = train_target.to(self.device).float()
 
+            # clear the gradients
+            self.optimizer.zero_grad()
+
             # running input through model
             output = self.model(train_input)
 
@@ -129,15 +133,14 @@ class TrainModel:
             batch_loss = self.loss_function(output, train_target)
             # adding batch loss to collection
             total_loss_train += batch_loss.item()
-
             # calculating the batch accuracy
-            acc = (output.argmax(dim=1) == train_target).sum().float().item()
-            acc = acc / train_target.size(0)
+            # acc = (output.argmax(dim=1) == train_target).sum().float().item()
+            # acc = acc / train_target.size(0)
+            acc = r2_score(output, train_target)
             # adding batch accuracy to collection
             total_acc_train += acc
 
             # preparing model and loss for next iteration
-            self.model.zero_grad()
             batch_loss.backward()
             self.optimizer.step()
 
@@ -151,7 +154,7 @@ class TrainModel:
         self.__createTensorboardLogs("training", epoch, mean_loss_train, mean_acc_train)
         # returning loss and accuracy
         print(
-            "Train Loss @ Epoch %i/%i : %.5f | Accuracy %.5f"
+            "Train Loss @ Epoch %i/%i : %.5f | R2_score %.5f"
             % (epoch + 1, self.epochs, mean_loss_train, mean_acc_train)
         )
         return mean_loss_train, mean_acc_train
@@ -183,8 +186,9 @@ class TrainModel:
                 total_loss_val += batch_loss.item()
 
                 # calculating batch accuracy
-                acc = (output.argmax(dim=1) == val_target).sum().item()
-                acc = acc / val_target.size(0)
+                acc = r2_score(output, val_target)
+                # acc = (output.argmax(dim=1) == val_target).sum().item()
+                # acc = acc / val_target.size(0)
                 # adding batch accuracy to collection
                 total_acc_val += acc
 
@@ -194,11 +198,14 @@ class TrainModel:
         # adding mean loss and accuracy to class collectors
         self._val_accuracies.append(mean_acc_val)
         self._val_losses.append(mean_loss_val)
+        # adjusting learning rate
+        self.scheduler1.step(epoch)
+        self.scheduler2.step(epoch)
         # adding TensorBoard entries for validation
         self.__createTensorboardLogs("validation", epoch, mean_loss_val, mean_acc_val)
         # returning loss and accuracy
         print(
-            "Test Loss @ Epoch %i/%i : %.5f | Accuracy %.5f"
+            "Test Loss @ Epoch %i/%i : %.5f | R2_score %.5f"
             % (epoch + 1, self.epochs, mean_loss_val, mean_acc_val)
         )
         return mean_loss_val, mean_acc_val
