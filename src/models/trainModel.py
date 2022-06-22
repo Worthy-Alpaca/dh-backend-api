@@ -9,8 +9,7 @@ from torch.utils.data import DataLoader
 import pandas as pd
 from datetime import datetime
 import optuna
-from sklearn.metrics import r2_score
-from torchmetrics.functional import r2_score
+from torchmetrics.functional import mean_absolute_error
 
 import os
 
@@ -20,7 +19,6 @@ from torchinfo import summary
 
 from helper.MachineDataSet import MachineDataSet
 from helper.model import Network
-import helper.losses as losses
 
 
 class TrainModel:
@@ -136,7 +134,7 @@ class TrainModel:
             # calculating the batch accuracy
             # acc = (output.argmax(dim=1) == train_target).sum().float().item()
             # acc = acc / train_target.size(0)
-            acc = r2_score(output, train_target)
+            acc = mean_absolute_error(output, train_target)
             # adding batch accuracy to collection
             total_acc_train += acc
 
@@ -150,11 +148,14 @@ class TrainModel:
         # adding mean loss and accuracy to class collectors
         self._train_accuracies.append(mean_acc_train)
         self._train_losses.append(mean_loss_train)
+        # adjusting learning rate
+        self.scheduler1.step()
+        self.scheduler2.step()
         # creating TensorBoard entries for training
         self.__createTensorboardLogs("training", epoch, mean_loss_train, mean_acc_train)
         # returning loss and accuracy
         print(
-            "Train Loss @ Epoch %i/%i : %.5f | R2_score %.5f"
+            "Train Loss @ Epoch %i/%i : %.5f | MAE %.5f"
             % (epoch + 1, self.epochs, mean_loss_train, mean_acc_train)
         )
         return mean_loss_train, mean_acc_train
@@ -186,7 +187,7 @@ class TrainModel:
                 total_loss_val += batch_loss.item()
 
                 # calculating batch accuracy
-                acc = r2_score(output, val_target)
+                acc = mean_absolute_error(output, val_target)
                 # acc = (output.argmax(dim=1) == val_target).sum().item()
                 # acc = acc / val_target.size(0)
                 # adding batch accuracy to collection
@@ -198,14 +199,11 @@ class TrainModel:
         # adding mean loss and accuracy to class collectors
         self._val_accuracies.append(mean_acc_val)
         self._val_losses.append(mean_loss_val)
-        # adjusting learning rate
-        self.scheduler1.step(epoch)
-        self.scheduler2.step(epoch)
         # adding TensorBoard entries for validation
         self.__createTensorboardLogs("validation", epoch, mean_loss_val, mean_acc_val)
         # returning loss and accuracy
         print(
-            "Test Loss @ Epoch %i/%i : %.5f | R2_score %.5f"
+            "Test Loss @ Epoch %i/%i : %.5f | MAE %.5f"
             % (epoch + 1, self.epochs, mean_loss_val, mean_acc_val)
         )
         return mean_loss_val, mean_acc_val
@@ -286,7 +284,7 @@ class TrainModel:
 
 if __name__ == "__main__":
     DATA_PATH = Path(os.getcwd() + os.path.normpath("/data/all/trainDataTogether.csv"))
-    model = Network(4, 1, 2, [16, 32])
+    model = Network(4, 1, 3, [16, 32, 16])
 
     trainModel = TrainModel(DATA_PATH, model)
     trainLoader, testLoader = trainModel.prepareData()
