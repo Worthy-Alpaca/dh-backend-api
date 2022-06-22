@@ -136,6 +136,6 @@ if __name__ == "__main__":
 
     DATA_PATH = Path(os.getcwd() + os.path.normpath("/data/all/trainDataTogether.csv"))
 
-    tuner = Tuner(DATA_PATH, epochs=20)
+    tuner = Tuner(DATA_PATH, epochs=20, direction="minimize")
     best_trial = tuner.optimize(n_trials=30)
     tuner.tuneModel(best_trial.params, None)
