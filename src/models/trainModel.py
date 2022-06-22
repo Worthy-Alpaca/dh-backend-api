@@ -229,9 +229,9 @@ class TrainModel:
         data = data.reshape(1, -1)
         if self.scale_data:
             data = self.scaleX.transform(data)
-        data = torch.from_numpy(data)
+        data = torch.from_numpy(data).to(self.device)
         prediction = self.model(data.float())
-        prediction = prediction.detach().numpy()
+        prediction = prediction.cpu().detach().numpy()
         if self.scale_data:
             prediction = self.scaleData(prediction, inverse=True)
 
