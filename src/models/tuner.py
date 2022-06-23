@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, Union
 
 import torch
 import optuna
@@ -115,7 +115,7 @@ class Tuner:
 
     def tuneModel(
         self, params: dict, trial: optuna.trial
-    ) -> tuple[torch.tensor | float, torch.Tensor | float]:
+    ) -> tuple[Union[torch.tensor, float], Union[torch.Tensor, float]]:
         """Tunes the model accoring to objective parameters.
 
         Args:
@@ -123,7 +123,7 @@ class Tuner:
             trial (optuna.trial): Current optuna trial.
 
         Returns:
-            tuple[torch.tensor | float, torch.Tensor | float]: Mean Loss and Accuracy for validation.
+            tuple[torch.tensor  float, torch.Tensor  float]: Mean Loss and Accuracy for validation.
         """
         print(params)
         try:

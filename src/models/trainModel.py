@@ -1,6 +1,6 @@
 from pathlib import Path
 from types import FunctionType
-from typing import Any, Dict, Literal
+from typing import Any, Dict, Literal, Union
 import torch
 from sklearn.model_selection import train_test_split
 import numpy as np
@@ -55,8 +55,8 @@ class TrainModel:
         show_summary: bool = False,
         validate: Literal["maximize", "minimize"] = "minimize",
     ) -> tuple[
-        tuple[Any | float, torch.Tensor | float],
-        tuple[Any | float, torch.Tensor | float],
+        tuple[Union[Any, float], Union[torch.Tensor, float]],
+        tuple[Union[Any, float], Union[torch.Tensor, float]],
     ]:
         """Train the Model for the specified number of epochs.
 
@@ -76,7 +76,7 @@ class TrainModel:
             optuna.exceptions.TrialPruned: Stops training when Optuna prunes a trial according to optuna Pruner instance.
 
         Returns:
-            tuple[tuple[Any | float, torch.Tensor | float], tuple[Any | float, torch.Tensor | float]]: Can either be the Loss or the Mean Absolute Error
+            tuple[tuple[Any  float, torch.Tensor  float], tuple[Any  float, torch.Tensor  float]]: Can either be the Loss or the Mean Absolute Error
         """
         # Assigning empty lists for parameters
         self.epochs = epochs
@@ -127,7 +127,7 @@ class TrainModel:
 
     def __train(
         self, trainLoader: DataLoader, epoch: int
-    ) -> tuple[Any | float, torch.Tensor | float]:
+    ) -> tuple[Union[Any, float], Union[torch.Tensor, float]]:
         """Runs a training loop. Model is in training mode.
 
         Args:
@@ -135,7 +135,7 @@ class TrainModel:
             epoch (int): The current epoch.
 
         Returns:
-            tuple[Any | float, torch.Tensor | float]: Returns the mean training Loss and MAE for all batches.
+            tuple[Any  float, torch.Tensor  float]: Returns the mean training Loss and MAE for all batches.
         """
         # setting model into training mode
         self.model.train()
@@ -183,14 +183,14 @@ class TrainModel:
         self.__createTensorboardLogs("training", epoch, mean_loss_train, mean_acc_train)
         # returning loss and accuracy
         print(
-            "Train Loss @ Epoch %i/%i : %.5f | MAE %.5f"
+            "Train Loss @ Epoch %i/%i : %.5f  MAE %.5f"
             % (epoch + 1, self.epochs, mean_loss_train, mean_acc_train)
         )
         return mean_loss_train, mean_acc_train
 
     def __validate(
         self, testLoader: DataLoader, epoch: int
-    ) -> tuple[Any | float, torch.Tensor | float]:
+    ) -> tuple[Union[Any, float], Union[torch.Tensor, float]]:
         """Runs a validation loop. Model is in validation mode.
 
         Args:
@@ -198,7 +198,7 @@ class TrainModel:
             epoch (int): The current epoch.
 
         Returns:
-            tuple[Any | float, torch.Tensor | float]: Returns the mean validation Loss and MAE for all batches.
+            tuple[Any  float, torch.Tensor  float]: Returns the mean validation Loss and MAE for all batches.
         """
         # setting model into evaluation mode
         self.model.eval()
@@ -238,7 +238,7 @@ class TrainModel:
         self.__createTensorboardLogs("validation", epoch, mean_loss_val, mean_acc_val)
         # returning loss and accuracy
         print(
-            "Test Loss @ Epoch %i/%i : %.5f | MAE %.5f"
+            "Test Loss @ Epoch %i/%i : %.5f  MAE %.5f"
             % (epoch + 1, self.epochs, mean_loss_val, mean_acc_val)
         )
         return mean_loss_val, mean_acc_val
@@ -288,7 +288,7 @@ class TrainModel:
 
     def scaleData(
         self, data: np.ndarray, labels: np.ndarray = None, inverse: bool = False
-    ) -> (np.ndarray | tuple[np.ndarray, np.ndarray]):
+    ) -> (Union[np.ndarray, tuple[np.ndarray, np.ndarray]]):
         """Scales input data. Also allows for inverse transformation.
 
         Args:
@@ -387,7 +387,7 @@ if __name__ == "__main__":
     model = Network(4, 1, 3, [16, 32, 16])
 
     trainModel = TrainModel(DATA_PATH, model)
-    trainLoader, testLoader = trainModel.prepareData()
+    trainLoader, testLoader = trainModel.prepareData(scale_data=False)
     trainModel.fit(2, trainLoader, testLoader, show_summary=True)
     # data = np.array([308, 1, 306, 500])
     data = np.array([168, 0, 225.6, 128.0])

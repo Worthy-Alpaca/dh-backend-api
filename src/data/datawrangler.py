@@ -57,7 +57,7 @@ class DataWrangler:
             neededColumns = ["Date", "Contents"]
             df = df[neededColumns]
             matchers = ["Updated PCB Count", "LP begibt sich zu Punkt LP Einlaufband."]
-            loc = "|".join(matchers)
+            loc = "".join(matchers)
             pcbcount = df.loc[df["Contents"].str.contains(loc)]
             print(pcbcount)
             pcbcount["Date"] = pd.to_datetime(pcbcount["Date"])

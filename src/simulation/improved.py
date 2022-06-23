@@ -3,6 +3,7 @@ import sys
 import os
 import itertools
 import time as tm
+from typing import Union
 import pandas as pd
 from collections import deque
 from pathlib import Path
@@ -43,7 +44,7 @@ class ManufacturingImproved:
 
     def __call__(
         self, mulitPickOption: bool = True, plotPCB: bool = False
-    ) -> (float | dict):
+    ) -> Union[float, dict]:
         self.multiPickOption = mulitPickOption
         time = int
         plotX = list

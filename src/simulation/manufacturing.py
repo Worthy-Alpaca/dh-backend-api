@@ -6,6 +6,7 @@ from collections import deque
 from pathlib import Path
 import concurrent.futures
 import time as tm
+from typing import Union
 import pandas as pd
 from tqdm import tqdm
 
@@ -353,7 +354,7 @@ class Manufacturing:
         multiPickOption: bool = True,
         plotPCB: bool = False,
         useIdealState: bool = False,
-    ) -> (float | dict):
+    ) -> Union[float, dict]:
         """Start the assembly simulation.
 
         Args:
