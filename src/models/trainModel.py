@@ -11,6 +11,7 @@ from datetime import datetime
 import optuna
 from torchmetrics.functional import mean_absolute_error
 from sklearn.preprocessing import MinMaxScaler
+from tqdm import tqdm
 import os
 
 from torch.utils.tensorboard import SummaryWriter
@@ -23,6 +24,9 @@ from helper.model import Network
 
 class TrainModel:
     def __init__(self, dataPath: Path, model: torch.nn.Module) -> None:
+        """
+        Class that initializes a Model training instance.
+        """
         torch.manual_seed(42)
         self.dataPath = dataPath
         self.model = model
@@ -118,7 +122,7 @@ class TrainModel:
         total_acc_train = 0
         total_loss_train = 0
         # looping over batches in Dataloader
-        for train_input, train_target in trainLoader:
+        for train_input, train_target in tqdm(trainLoader):
             # assigning input and target to device, casting to float
             train_input = train_input.to(self.device).float()
             train_target = train_target.to(self.device).float()
@@ -174,7 +178,7 @@ class TrainModel:
         # turning off gradient calculations
         with torch.no_grad():
             # looping over batches in testLoader
-            for val_input, val_target in testLoader:
+            for val_input, val_target in tqdm(testLoader):
                 # assigning input and target to device, casting to float
                 val_target = val_target.to(self.device).float()
                 val_input = val_input.to(self.device).float()
@@ -237,7 +241,9 @@ class TrainModel:
 
         return prediction
 
-    def scaleData(self, data, labels=None, inverse=False):
+    def scaleData(
+        self, data: np.ndarray, labels: np.ndarray = None, inverse: bool = False
+    ):
         """
         Scales input data. Also allows for inverse transformation
         """
