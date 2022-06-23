@@ -28,7 +28,7 @@ class Tuner:
             pruner (optuna.pruners, optional): Optuna Pruner Algorythm to use. Defaults to optuna.pruners.HyperbandPruner.
 
         Returns:
-            optuna.study: Optuna Study session.
+            optuna.study: Optuna Study like session.
         """
         # assigning variables
         self.dataPath = dataPath

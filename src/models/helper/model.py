@@ -214,13 +214,26 @@ class Network3(torch.nn.Module):
 class Network(nn.Module):
     def __init__(
         self,
-        in_features,
-        out_features,
-        n_layers,
-        n_units_layers,
-        p=0.2,
-        activation=nn.GELU,
-    ) -> None:
+        in_features: int,
+        out_features: int,
+        n_layers: int,
+        n_units_layers: list,
+        p: float = 0.2,
+        activation: torch.nn = nn.GELU,
+    ) -> nn.Module:
+        """Subclass of a PyTorch Module. Creates a neural deep forward Network.
+
+        Args:
+            in_features (int): Number of input features.
+            out_features (int): Number of output features.
+            n_layers (int): Number of layers in the Model.
+            n_units_layers (list): Number of output features for each Model layer. Number must correspond with n_layers.
+            p (float, optional): Dropout probability. Defaults to 0.2.
+            activation (torch.nn, optional): Activation function. Defaults to nn.GELU.
+
+        Returns:
+            nn.Module: A PyTorch neural network module.
+        """
         super(Network, self).__init__()
         self.input_size = in_features
         self.output_size = out_features

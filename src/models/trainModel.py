@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 import pandas as pd
 from datetime import datetime
 import optuna
-from torchmetrics.functional import mean_absolute_error
+from torchmetrics.functional import mean_absolute_error, r2_score
 from sklearn.preprocessing import MinMaxScaler
 from tqdm import tqdm
 import os
@@ -162,7 +162,7 @@ class TrainModel:
             # calculating the batch accuracy
             # acc = (output.argmax(dim=1) == train_target).sum().float().item()
             # acc = acc / train_target.size(0)
-            acc = mean_absolute_error(output, train_target)
+            acc = r2_score(output, train_target)
             # adding batch accuracy to collection
             total_acc_train += acc
 
@@ -389,6 +389,10 @@ if __name__ == "__main__":
     trainModel = TrainModel(DATA_PATH, model)
     trainLoader, testLoader = trainModel.prepareData()
     trainModel.fit(2, trainLoader, testLoader, show_summary=True)
-    data = np.array([308, 1, 306, 500])
+    # data = np.array([308, 1, 306, 500])
+    data = np.array([168, 0, 225.6, 128.0])
+    pred = trainModel.predict(data)
+    print(pred)
+    data = np.array([168, 1, 225.6, 128.0])
     pred = trainModel.predict(data)
     print(pred)
