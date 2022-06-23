@@ -227,18 +227,16 @@ class Network(nn.Module):
         layers = []
         layers2 = []
 
-        # self.recurrent = nn.GRU(in_features, 7, num_layers=3, dropout=p)
         running_features = in_features
 
         dropOut1 = nn.Dropout(p)
         activation1 = activation()
 
         for i in range(n_layers):
-            layers.append(nn.AdaptiveMaxPool1d(running_features))
             layers.append(activation1)
             running_layer = nn.Linear(running_features, n_units_layers[i])
             torch.nn.init.orthogonal_(
-                running_layer.weight, gain=nn.init.calculate_gain("relu", 0.2)
+                running_layer.weight, gain=nn.init.calculate_gain("tanh", 0.2)
             )
             torch.nn.init.zeros_(running_layer.bias)
             layers.append(running_layer)
