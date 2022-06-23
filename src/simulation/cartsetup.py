@@ -8,7 +8,13 @@ class CartSetup:
     def __init__(
         self, data: tuple, randomInterruptMin: int = 0, randomInterruptMax: int = 30
     ):
-        """Class which initializes the cartsetuptime calculations"""
+        """Class which initializes the cartsetuptime calculations
+
+        Args:
+            data (tuple): The current data set.
+            randomInterruptMin (int, optional): Minimum value for random interruption calculations. Defaults to 0.
+            randomInterruptMax (int, optional): Maximum value for random interruption calculations. Defaults to 30.
+        """
         components = data[1]
         feedcart = {}
         for i in components["FeedStyle"].unique():
@@ -18,8 +24,12 @@ class CartSetup:
         self.randomInterruptMax = randomInterruptMax
         self.feedcart = {k: v for k, v in feedcart.items() if k == k}
 
-    def __call__(self):
-        """Starts the setuptime calculation process"""
+    def __call__(self) -> dict[str, int]:
+        """Starts the setuptime calculation process
+
+        Returns:
+            dict[str, int]: Key, Value pair for time and number of needed Carts.
+        """
         cart = 0
         time = 0
         # print(f"Setup for this product in progess: {len(self.feedcart.keys())} Carts needed")
@@ -39,8 +49,12 @@ class CartSetup:
 
         return {"time": time, "numCarts": len(self.feedcart.keys())}
 
-    def desetup(self):
-        """Calculations to simulate the derigging of feedercarts"""
+    def desetup(self) -> float:
+        """Calculations to simulate the derigging of feedercarts
+
+        Returns:
+            float: Time for derigging.
+        """
         time = 0
         for i in range(self.NumComp):
             time = (48 + np.random.randint(0, 30) + 9.9) + time

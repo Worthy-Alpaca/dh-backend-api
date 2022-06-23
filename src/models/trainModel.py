@@ -24,8 +24,11 @@ from helper.model import Network
 
 class TrainModel:
     def __init__(self, dataPath: Path, model: torch.nn.Module) -> None:
-        """
-        Class that initializes a Model training instance.
+        """Class that initializes a Model training instance.
+
+        Args:
+            dataPath (Path): Path to a datasource.
+            model (torch.nn.Module): The model that is used for training.
         """
         torch.manual_seed(42)
         self.dataPath = dataPath
@@ -50,20 +53,30 @@ class TrainModel:
         optim_args: Dict = {},
         trial: optuna.Trial = None,
         show_summary: bool = False,
-        validate: Literal["maximize", "minimize"] = "maximize",
-    ):
-        """
-        - `epochs` : Number of epochs to train
-        - `trainloader` : `torch.utils.data.DataLoader` Class with training data
-        - `testloader` : `torch.utils.data.DataLoader` Class with validation data
-        - `learning_rate` : learning rate to be applied
-        - `optimizer` : optimizer function -> default is ADAM
-        - `loss_function` : loss function -> default is MSE Loss
-        - `optim_args` : Arguments for optimizer
-        - `trial` : Optuna Trial -> default is `None`
-        - `validate` : Which aspect to tune -> maximise = Accuracy | minimize = Loss
+        validate: Literal["maximize", "minimize"] = "minimize",
+    ) -> tuple[
+        tuple[Any | float, torch.Tensor | float],
+        tuple[Any | float, torch.Tensor | float],
+    ]:
+        """Train the Model for the specified number of epochs.
 
-        > Returns: (train loss, train accuracy), (test loss, test accuracy)
+        Args:
+            epochs (int): Number of epochs to train.
+            trainLoader (DataLoader): Training Data.
+            testLoader (DataLoader): Validation Data.
+            learning_rate (float, optional): Learning Rate for optimizer. Defaults to 1e-5.
+            optimizer (FunctionType, optional): Pytorch optimizer instance. Defaults to torch.optim.Adam.
+            loss_function (FunctionType, optional): Pytorch Loss Function instance. Defaults to nn.MSELoss.
+            optim_args (Dict, optional): Optional Arguments for Pytorch optimizer. See documentation for examples. Defaults to {}.
+            trial (optuna.Trial, optional): Current Optuna Trial. Defaults to None.
+            show_summary (bool, optional): Controlls if a Model summary is shown before training starts. Defaults to False.
+            validate (Literal[&quot;maximize&quot;, &quot;minimize&quot;], optional): Controlls which Metric to return. Defaults to "minimize".
+
+        Raises:
+            optuna.exceptions.TrialPruned: Stops training when Optuna prunes a trial according to optuna Pruner instance.
+
+        Returns:
+            tuple[tuple[Any | float, torch.Tensor | float], tuple[Any | float, torch.Tensor | float]]: Can either be the Loss or the Mean Absolute Error
         """
         # Assigning empty lists for parameters
         self.epochs = epochs
@@ -75,6 +88,7 @@ class TrainModel:
         self.optimizer = optimizer(
             self.model.parameters(), lr=learning_rate, **optim_args
         )
+
         self.loss_function = loss_function()
         # creating Learning Rate adjuster
         self.scheduler1 = ExponentialLR(self.optimizer, gamma=1e-3)
@@ -111,9 +125,17 @@ class TrainModel:
         # returning calculated values
         return (train_loss, train_acc), (val_loss, val_acc)
 
-    def __train(self, trainLoader: DataLoader, epoch: int):
-        """
-        > returns: loss, accuracy
+    def __train(
+        self, trainLoader: DataLoader, epoch: int
+    ) -> tuple[Any | float, torch.Tensor | float]:
+        """Runs a training loop. Model is in training mode.
+
+        Args:
+            trainLoader (DataLoader): DataLoader that contains the training data.
+            epoch (int): The current epoch.
+
+        Returns:
+            tuple[Any | float, torch.Tensor | float]: Returns the mean training Loss and MAE for all batches.
         """
         # setting model into training mode
         self.model.train()
@@ -166,9 +188,17 @@ class TrainModel:
         )
         return mean_loss_train, mean_acc_train
 
-    def __validate(self, testLoader: DataLoader, epoch: int):
-        """
-        > returns: loss, accuracy
+    def __validate(
+        self, testLoader: DataLoader, epoch: int
+    ) -> tuple[Any | float, torch.Tensor | float]:
+        """Runs a validation loop. Model is in validation mode.
+
+        Args:
+            testLoader (DataLoader): DataLoader that contains the validation data.
+            epoch (int): The current epoch.
+
+        Returns:
+            tuple[Any | float, torch.Tensor | float]: Returns the mean validation Loss and MAE for all batches.
         """
         # setting model into evaluation mode
         self.model.eval()
@@ -213,9 +243,16 @@ class TrainModel:
         )
         return mean_loss_val, mean_acc_val
 
-    def __createTensorboardLogs(self, mode: str, epoch: int, loss: Any, accu: Any):
-        """
-        Create TensorBoard entries for Loss and Accuracy as well as weight and bias for all possible children
+    def __createTensorboardLogs(
+        self, mode: Literal["training", "validation"], epoch: int, loss: Any, accu: Any
+    ):
+        """Create TensorBoard entries for Loss and Accuracy as well as weight and bias for all possible children.
+
+        Args:
+            mode (Literal[&#39;training&#39;, &#39;validation&#39;]): The current mode. Can either be training or validation.
+            epoch (int): The current epoch.
+            loss (Any): The current Loss.
+            accu (Any): The current Accuracy.
         """
         self.writer.add_scalar(f"Loss@{mode}", loss, epoch)
         self.writer.add_scalar(f"Accuracy@{mode}", accu, epoch)
@@ -229,7 +266,15 @@ class TrainModel:
             except:
                 continue
 
-    def predict(self, data: np.ndarray):
+    def predict(self, data: np.ndarray) -> np.ndarray:
+        """Predict an outcome using the trained Model.
+
+        Args:
+            data (np.ndarray): The Features for prediction.
+
+        Returns:
+            np.ndarray: The generated prediction.
+        """
         data = data.reshape(1, -1)
         if self.scale_data:
             data = self.scaleX.transform(data)
@@ -243,9 +288,16 @@ class TrainModel:
 
     def scaleData(
         self, data: np.ndarray, labels: np.ndarray = None, inverse: bool = False
-    ):
-        """
-        Scales input data. Also allows for inverse transformation
+    ) -> (np.ndarray | tuple[np.ndarray, np.ndarray]):
+        """Scales input data. Also allows for inverse transformation.
+
+        Args:
+            data (np.ndarray): The input data.
+            labels (np.ndarray): The label data.
+            inverse (bool): If an inverse transformation should be done to the data input. Defaults to False.
+
+        Returns:
+            _type_: _description_
         """
         if inverse:
             return self.scaleY.inverse_transform(data)
@@ -260,20 +312,30 @@ class TrainModel:
 
     def prepareData(
         self, scale_data: bool = True, batch_size: int = 15, shuffle: bool = True
-    ):
-        """
-        Prepare the Data from dataPath
-        - `scale_data` : Wether to scale the data
-        - `batch_size` : Size of batches
-        - `shuffle` : Wether to shuffle the data
+    ) -> tuple[DataLoader, DataLoader]:
+        """Prepare the Data found in dataPath.
 
-        > returns: trainLoader, testLoader
+        Args:
+            scale_data (bool, optional): If the found data should be scaled. Defaults to True.
+            batch_size (int, optional): The batch size to be used. Defaults to 15.
+            shuffle (bool, optional): If the found data should be shuffled. Defaults to True.
+
+        Raises:
+            FileNotFoundError: Raises this error if the given Datapath leads to an unreadable file.
+
+        Returns:
+            tuple[DataLoader, DataLoader]: Returns the trainLoader and the testLoader.
         """
         # adding batch size to class variables
         self.batch_size = batch_size
         self.scale_data = scale_data
         # loading dataset
-        df = pd.read_csv(self.dataPath, low_memory=False, encoding="unicode_escape")
+        try:
+            df = pd.read_csv(self.dataPath, low_memory=False, encoding="unicode_escape")
+        except:
+            raise FileNotFoundError(
+                "The given dataPath does not lead to a readable file."
+            )
         # pulling only the needed features
         df = df[
             [

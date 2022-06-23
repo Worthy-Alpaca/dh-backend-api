@@ -11,6 +11,12 @@ class DataLoader:
     """
 
     def __init__(self, data_folder: Path, separator: str = ","):
+        """Initializes a new DataLoader instance.
+
+        Args:
+            data_folder (Path): Path to the current SMD Program. May change to a DB connection.
+            separator (str, optional): The seperator to be used. Defaults to ",".
+        """
         matchers = ["Cmp", "Kyu", "Tou"]
         matching = [
             s for s in os.listdir(data_folder) if any(xs in s for xs in matchers)
@@ -41,7 +47,14 @@ class DataLoader:
             elif "Tou" in i:
                 self.product_data = df
 
-    def __call__(self, *args: any, **kwds: any) -> tuple:
+    def __call__(
+        self, *args: any, **kwds: any
+    ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        """Generate the needed Data for an assembly simulation.
+
+        Returns:
+            tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: Returns data, components, offsetlist
+        """
         neededColumns_Data = ["Component Code", "X", "Y", "Task"]
         neededColumns_Components = [
             "Component Code",

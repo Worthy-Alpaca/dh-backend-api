@@ -25,11 +25,11 @@ PICKUP = 0.1
 
 class Manufacturing:
     def __init__(self, data: tuple, machine: Machine):
-        """
-        Simulates the manufacturing process in SMD machines M10 and M20
+        """Simulates the manufacturing process in SMD machines M10 and M20.
 
-        - data: the data returned from the DataLoader
-        - machine: the current Maschine instance
+        Args:
+            data (tuple): The current Dataset.
+            machine (Machine): The current Machine.
         """
         # assign machine property
         self.machine = machine
@@ -55,11 +55,16 @@ class Manufacturing:
                 for key in machine:
                     self.feedercarts[key] = machine[key]
 
-    def __calcVector(self, vectorA: tuple, vectorB: tuple, velocity: float):
-        """
-        Calculates the pathlength between two given vectors
-        - vectorA: where you are
-        - vectorB: where you want to go
+    def __calcVector(self, vectorA: tuple, vectorB: tuple, velocity: float) -> float:
+        """Calculates the pathlength between two given vectors
+
+        Args:
+            vectorA (tuple): Start locationvector.
+            vectorB (tuple): End locationvector.
+            velocity (float): The current velocity to use.
+
+        Returns:
+            float: The calculated travel time.
         """
         # calculate the connection vector
         vector_AB = (
@@ -72,11 +77,11 @@ class Manufacturing:
         return path_length / velocity
 
     def calcTime(self, offset_row: tuple, useIdealState: bool):
-        """
-        Calculates the time for a given offset
+        """Calculates the time for a given offset.
 
-        - offset_row: the current offset to add onto the coordinates
-        - useIdealState: if the best performance for each machine should be used
+        Args:
+            offset_row (tuple): The current offset.
+            useIdealState (bool): If the ideal state of the machine should be used. Impacts the veloticy used.
         """
 
         def isNan(string):
@@ -348,10 +353,18 @@ class Manufacturing:
         multiPickOption: bool = True,
         plotPCB: bool = False,
         useIdealState: bool = False,
-        *args: any,
-        **kwds: any
     ) -> (float | dict):
-        """Start the assembly simulation"""
+        """Start the assembly simulation.
+
+        Args:
+            multiPickOption (bool): If the simulation uses multipick. Multipich decreases assembly time. Defaults to True.
+            plotPCB (bool): If coordinates should be returned. If true, returns a dict instead of a float. Defaults to False
+            useIdealState (bool): If the ideal state of the machine should be used. Impacts the veloticy used.
+
+        Returns:
+            float: If plotPCB is set to False.
+            dict: If plotPCB is set to True. Contains time, plot_x, plot_y.
+        """
         self.multiPickOption = multiPickOption
         time = 0
         plotX = []
@@ -377,8 +390,12 @@ class Manufacturing:
             }
         return time
 
-    def coating(self):
-        """simulates the time for coating a PCB"""
+    def coating(self) -> float:
+        """simulates the time for coating a PCB
+
+        Returns:
+            float: The calculated time.
+        """
         velocity = 20  # mm/s
 
         # highest coordinate on PCB

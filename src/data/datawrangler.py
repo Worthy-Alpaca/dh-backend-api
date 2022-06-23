@@ -11,6 +11,11 @@ class DataWrangler:
     """Class that handles Data processing for ML"""
 
     def __init__(self, machine: str) -> None:
+        """THIS MODULE IS DEPRECATED. Use SQL Database lookup instead.
+
+        Args:
+            machine (str): The current Machine.
+        """
         # replace with DB lookup
         self.machine = machine
         pathM20 = Path(os.getcwd() + os.path.normpath(f"/data/logs/{machine}/"))
@@ -102,13 +107,13 @@ class MyFancyException(Exception):
 
 
 class MachineDataLoader:
-    def __init__(self, machine) -> None:
-        path = Path(os.getcwd() + os.path.normpath(f"/data/logs/machine {machine}"))
+    def __init__(self, machine: str) -> None:
+        """THIS MODULE IS DEPRECATED. Use SQL Database lookup instead.
 
-        """try:
-            os.remove("output.txt")
-        except:
-            pass"""
+        Args:
+            machine (str): The current machine.
+        """
+        path = Path(os.getcwd() + os.path.normpath(f"/data/logs/machine {machine}"))
 
         timings = []
 
@@ -166,22 +171,22 @@ class MachineDataLoader:
                 + os.path.normpath(f"/data/logs/combined/machine_timings_combined.csv")
             )
             output.to_csv(outputPath, mode="a", header=not os.path.exists(outputPath))
-            """start = tm.perf_counter()
-            dayCounter = 0
-            for day in DFList:
-                dayCounter = dayCounter + 1
-                print(f"Starting sequential Day {dayCounter} ")
-                self.calcTimings(day, dayCounter)
 
-            print(f"===== Duration Sequential: {tm.perf_counter() - start} =====")"""
+    def loadData(self, path: Path) -> pd.DataFrame:
+        """Load the Data.
 
-    def loadData(self, path):
+        Args:
+            path (Path): the Path to the data source.
+
+        Returns:
+            pd.DataFrame: The loaded Dataframe.
+        """
         skip = -1
         while True:
             skip = skip + 1
 
             df = pd.read_csv(
-                str(path), skiprows=skip, encoding="unicode_escape", low_memory=False
+                path, skiprows=skip, encoding="unicode_escape", low_memory=False
             )
             if "Date" in df.columns:
                 break
@@ -210,6 +215,18 @@ class MachineDataLoader:
         return df
 
     def calcTimings(self, day: pd.DataFrame, dayCount: int) -> pd.DataFrame:
+        """Calculate the timings for a given Day.
+
+        Args:
+            day (pd.DataFrame): The current data.
+            dayCount (int): The current day.
+
+        Raises:
+            MyFancyException: Exeption for calculating process.
+
+        Returns:
+            pd.DataFrame: Dataframe containing all timings of the day.
+        """
         list_df = []
         for n, g in day.groupby(["PCB ID"]):
             # print(g, file=open("output.txt", "a"))
