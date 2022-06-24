@@ -168,8 +168,7 @@ class Tuner:
         optim_args = {"weight_decay": params["weight_decay"]}
 
         train, test = self.trainModel.fit(
-            # params["epochs"],
-            self.epochs,
+            params["epochs"],
             trainLoader,
             testLoader,
             loss_function=params["loss_function"],
