@@ -86,14 +86,15 @@ class Tuner:
             "n_units_layers": [],
             "learning_rate": trial.suggest_loguniform("learning_rate", 1e-6, 9e-2),
             "optimizer": trial.suggest_categorical(
-                "optimizer", ["SGD", "ASGD", "Adam"]
+                "optimizer", ["SGD", "ASGD", "Adam", "Adamax", "Adam", "Rprop"]
             ),
             "scale_data": trial.suggest_categorical("scale_data", [True]),
             "loss_function": trial.suggest_categorical(
                 "loss_function",
                 [
                     "FocalTverskyLoss",
-                    "ComboLoss",
+                    "TverskyLoss",
+                    "DiceBCELoss",
                     "L1Loss",
                     "MSELoss",
                 ],
