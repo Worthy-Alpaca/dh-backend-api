@@ -82,7 +82,7 @@ class Tuner:
         """
         params = {
             "n_layers": trial.suggest_int("n_layers", 1, 5),
-            "epochs": trial.suggest_int("epochs", 1, 1),
+            "epochs": trial.suggest_int("epochs", 1, 15),
             "n_units_layers": [],
             "learning_rate": trial.suggest_loguniform("learning_rate", 1e-6, 9e-2),
             "optimizer": trial.suggest_categorical(
