@@ -196,14 +196,20 @@ class Tuner:
         with open(path / self.trainModel.run_name / "modelParameters.p", "wb") as fp:
             pickle.dump(params, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
+    def saveStudy(self, path: Path):
+        with open(path / f"{self.study.study_name}.p", "wb") as fp:
+            pickle.dump(self.study, fp, protocol=pickle.HIGHEST_PROTOCOL)
+
 
 if __name__ == "__main__":
     import os
 
     DATA_PATH = Path(os.getcwd() + os.path.normpath("/data/all/trainDataTogether.csv"))
+    STUDY_PATH = Path(os.getcwd() + os.path.normpath("/data/model/studies"))
 
     tuner = Tuner(DATA_PATH, epochs=1, direction="minimize")
-    best_trial = tuner.optimize(n_trials=30)
+    best_trial = tuner.optimize(n_trials=3)
+    tuner.saveStudy(STUDY_PATH)
     params = {
         "n_layers": 2,
         "epochs": 10,
