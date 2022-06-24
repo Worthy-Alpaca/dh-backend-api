@@ -93,7 +93,6 @@ class Tuner:
                 "loss_function",
                 [
                     "FocalTverskyLoss",
-                    "KLDivLoss",
                     "ComboLoss",
                     "L1Loss",
                     "MSELoss",
@@ -204,7 +203,7 @@ if __name__ == "__main__":
     DATA_PATH = Path(os.getcwd() + os.path.normpath("/data/all/trainDataTogether.csv"))
 
     tuner = Tuner(DATA_PATH, epochs=1, direction="minimize")
-    best_trial = tuner.optimize(n_trials=1)
+    best_trial = tuner.optimize(n_trials=30)
     params = {
         "n_layers": 2,
         "epochs": 10,
