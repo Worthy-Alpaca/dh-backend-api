@@ -1,6 +1,8 @@
+import pickle
 from pathlib import Path
 from types import FunctionType
 from typing import Any, Dict, Literal, Union
+from sqlalchemy import true
 import torch
 from sklearn.model_selection import train_test_split
 import numpy as np
@@ -12,6 +14,7 @@ import optuna
 from torchmetrics.functional import mean_absolute_error
 from sklearn.preprocessing import MinMaxScaler
 from tqdm import tqdm
+import joblib
 import os
 
 from torch.utils.tensorboard import SummaryWriter
@@ -21,21 +24,35 @@ from torchinfo import summary
 from helper.MachineDataSet import MachineDataSet
 from helper.model import Network
 
+PATH = Path(os.getcwd() + os.path.normpath("/data/models"))
+
 
 class TrainModel:
-    def __init__(self, dataPath: Path, model: torch.nn.Module) -> None:
+    def __init__(
+        self, dataPath: Path = None, model: torch.nn.Module = None, deploy: bool = False
+    ) -> None:
         """Class that initializes a Model training instance.
 
         Args:
-            dataPath (Path): Path to a datasource.
-            model (torch.nn.Module): The model that is used for training.
+            dataPath (Path): Path to a datasource or Modelsource if deploy is True
+            model (torch.nn.Module): The model that is used for training. If deploy is true, pass an uninitialized model
+            deplot (bool): If the model is in deploy mode. Defaults to False.
+
+        Exception:
+            KeyError: If dataPath or model = None while deploy = False
         """
         torch.manual_seed(42)
-        self.dataPath = dataPath
-        self.model = model
-        self.device = "cpu"
-        self.scaleX = MinMaxScaler()
-        self.scaleY = MinMaxScaler()
+
+        if deploy == False and dataPath == None or deploy == False and model == None:
+            raise KeyError("The dataPath or model cannot be None if deploy is False")
+        if deploy:
+            self.loadInternalStates(dataPath)
+        else:
+            self.dataPath = dataPath
+            self.model = model
+            self.device = "cpu"
+            self.scaleX = MinMaxScaler()
+            self.scaleY = MinMaxScaler()
         if torch.cuda.is_available():
             self.device = "cuda:0"
             if torch.cuda.device_count() > 1:
@@ -76,7 +93,7 @@ class TrainModel:
             optuna.exceptions.TrialPruned: Stops training when Optuna prunes a trial according to optuna Pruner instance.
 
         Returns:
-            tuple[tuple[Any  float, torch.Tensor  float], tuple[Any  float, torch.Tensor  float]]: Can either be the Loss or the Mean Absolute Error
+            tuple[tuple[Any | float, torch.Tensor | float], tuple[Any | float, torch.Tensor | float]]: Can either be the Loss or the Mean Absolute Error
         """
         # Assigning empty lists for parameters
         self.epochs = epochs
@@ -122,6 +139,9 @@ class TrainModel:
                 raise optuna.exceptions.TrialPruned()
         # closing tensoboard writer
         self.writer.close()
+        # saving the model
+        if trial == None:
+            self.saveInternalStates(PATH)
         # returning calculated values
         return (train_loss, train_acc), (val_loss, val_acc)
 
@@ -285,6 +305,21 @@ class TrainModel:
             prediction = self.scaleData(prediction, inverse=True)
 
         return prediction
+
+    def saveInternalStates(self, path: Path) -> None:
+        """Save the model and scaler state to the specified path.
+
+        Args:
+            path (Path): Folder in which the model should be saved.
+        """
+        if not os.path.exists(path / self.run_name):
+            os.makedirs(path / self.run_name)
+        model_scripted = torch.jit.script(self.model)
+        model_scripted.save(path / self.run_name / "modelState.pt")
+        # with open(path / self.run_name / "modelState.p", "wb") as fp:
+        # pickle.dump(self.model, fp, protocol=pickle.HIGHEST_PROTOCOL)
+        joblib.dump(self.scaleX, path / self.run_name / "scaleStateX.gz")
+        joblib.dump(self.scaleY, path / self.run_name / "scaleStateY.gz")
 
     def scaleData(
         self, data: np.ndarray, labels: np.ndarray = None, inverse: bool = False
