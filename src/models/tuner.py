@@ -168,17 +168,29 @@ class Tuner:
 
         optim_args = {"weight_decay": params["weight_decay"]}
 
-        train, test = self.trainModel.fit(
-            params["epochs"],
-            trainLoader,
-            testLoader,
-            loss_function=params["loss_function"],
-            optimizer=getattr(torch.optim, params["optimizer"]),
-            optim_args=optim_args,
-            learning_rate=params["learning_rate"],
-            trial=trial,
-            validate=self.direction,
-        )
+        try:
+            train, test = self.trainModel.fit(
+                params["epochs"],
+                trainLoader,
+                testLoader,
+                loss_function=params["loss_function"],
+                optimizer=getattr(torch.optim, params["optimizer"]),
+                optim_args=optim_args,
+                learning_rate=params["learning_rate"],
+                trial=trial,
+                validate=self.direction,
+            )
+        except:
+            train, test = self.trainModel.fit(
+                params["epochs"],
+                trainLoader,
+                testLoader,
+                loss_function=params["loss_function"],
+                optimizer=getattr(torch.optim, params["optimizer"]),
+                learning_rate=params["learning_rate"],
+                trial=trial,
+                validate=self.direction,
+            )
 
         if saveState:
             self.saveBestTrial(params)
