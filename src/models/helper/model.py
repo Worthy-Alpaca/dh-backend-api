@@ -241,7 +241,6 @@ class Network(nn.Module):
         layers2 = []
 
         running_features = in_features
-
         dropOut1 = nn.Dropout(p)
         activation1 = activation()
 
@@ -264,7 +263,6 @@ class Network(nn.Module):
         self.layers2 = nn.Sequential(*layers2)
 
     def forward(self, x):
-        # x, _ = self.recurrent(x)
         x = self.layers(x)
         return self.layers2(x)
 
