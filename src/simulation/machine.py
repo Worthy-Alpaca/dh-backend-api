@@ -8,7 +8,10 @@ SCRIPT_DIR = os.path.dirname(
 )
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 
-from schemas import DummyMachine
+try:
+    from schemas import DummyMachine
+except:
+    from src.schemas import DummyMachine
 
 from pathlib import Path
 

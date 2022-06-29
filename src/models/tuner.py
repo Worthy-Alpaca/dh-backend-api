@@ -4,9 +4,15 @@ import numpy as np
 
 import torch
 import optuna
-from trainModel import TrainModel
-from helper.model import Network
-import helper.losses as losses
+
+try:
+    from trainModel import TrainModel
+    from helper.model import Network
+    import helper.losses as losses
+except:
+    from src.models.trainModel import TrainModel
+    from src.models.helper.model import Network
+    import src.models.helper.losses as losses
 import torch.nn as nn
 import os
 

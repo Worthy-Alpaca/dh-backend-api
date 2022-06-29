@@ -21,8 +21,12 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.optim.lr_scheduler import ExponentialLR, MultiStepLR
 from torchinfo import summary
 
-from helper.MachineDataSet import MachineDataSet
-from helper.model import Network
+try:
+    from helper.MachineDataSet import MachineDataSet
+    from helper.model import Network
+except:
+    from src.models.helper.MachineDataSet import MachineDataSet
+    from src.models.helper.model import Network
 
 PATH = Path(os.getcwd() + os.path.normpath("/data/models"))
 
@@ -346,7 +350,7 @@ class TrainModel:
             inverse (bool): If an inverse transformation should be done to the data input. Defaults to False.
 
         Returns:
-            _type_: _description_
+            np.ndarray: The Scaled Data.
         """
         if inverse:
             return self.scaleY.inverse_transform(data)

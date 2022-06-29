@@ -15,7 +15,10 @@ SCRIPT_DIR = os.path.dirname(
     os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__)))
 )
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
-from simulation.machine import Machine
+try:
+    from simulation.machine import Machine
+except:
+    from src.simulation.machine import Machine
 
 global XMOD
 XMOD = 1

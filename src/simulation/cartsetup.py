@@ -1,6 +1,10 @@
 import numpy as np
 from pathlib import Path
-from data.dataloader import DataLoader
+
+try:
+    from data.dataloader import DataLoader
+except:
+    from src.data.dataloader import DataLoader
 import random
 
 

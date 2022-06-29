@@ -1,5 +1,6 @@
 import configparser
 import os
+import sys
 from os.path import exists
 
 from pathlib import Path
@@ -7,13 +8,28 @@ from pathlib import Path
 from fastapi import FastAPI, Response, status, Request
 import uvicorn
 
-from data.dataloader import DataLoader
-from data.datawrangler import MachineDataLoader
-from data.datawrangler import DataWrangler
-from simulation.cartsetup import CartSetup
-from simulation.machine import Machine
-from simulation.manufacturing import Manufacturing
-from schemas import DummyMachine
+PACKAGE_PARENT = "../"
+SCRIPT_DIR = os.path.dirname(
+    os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__)))
+)
+sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
+
+try:
+    from data.dataloader import DataLoader
+    from data.datawrangler import MachineDataLoader
+    from data.datawrangler import DataWrangler
+    from simulation.cartsetup import CartSetup
+    from simulation.machine import Machine
+    from simulation.manufacturing import Manufacturing
+    from schemas import DummyMachine
+except:
+    from src.data.dataloader import DataLoader
+    from src.data.datawrangler import MachineDataLoader
+    from src.data.datawrangler import DataWrangler
+    from src.simulation.cartsetup import CartSetup
+    from src.simulation.machine import Machine
+    from src.simulation.manufacturing import Manufacturing
+    from src.schemas import DummyMachine
 
 app = FastAPI()
 config = configparser.ConfigParser()
