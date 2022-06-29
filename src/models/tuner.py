@@ -82,11 +82,11 @@ class Tuner:
         """
         params = {
             "n_layers": trial.suggest_int("n_layers", 1, 5),
-            "epochs": trial.suggest_int("epochs", 1, 15),
+            "epochs": trial.suggest_int("epochs", 1, 25),
             "n_units_layers": [],
-            "learning_rate": trial.suggest_loguniform("learning_rate", 1e-6, 9e-2),
+            "learning_rate": trial.suggest_loguniform("learning_rate", 1e-6, 9e-1),
             "optimizer": trial.suggest_categorical(
-                "optimizer", ["SGD", "ASGD", "Adam", "Adamax", "Adam", "Rprop"]
+                "optimizer", ["SGD", "ASGD", "Adam", "Adamax"]
             ),
             "scale_data": trial.suggest_categorical("scale_data", [True]),
             "loss_function": trial.suggest_categorical(
@@ -94,7 +94,6 @@ class Tuner:
                 [
                     "FocalTverskyLoss",
                     "TverskyLoss",
-                    "DiceBCELoss",
                     "L1Loss",
                     "MSELoss",
                 ],
@@ -102,7 +101,7 @@ class Tuner:
             "activation": trial.suggest_categorical(
                 "activation", ["ReLU", "Sigmoid", "ELU"]
             ),
-            "batch_size": trial.suggest_int("batch_size", 45, 70),
+            "batch_size": trial.suggest_int("batch_size", 50, 70),
             "weight_decay": trial.suggest_loguniform("weight_decay", 9e-5, 9e-2),
             "dampening": trial.suggest_loguniform("dampening", 1e-1, 7e-1),
             "momentum": trial.suggest_loguniform("momentum", 1e-1, 7e-1),
@@ -220,7 +219,7 @@ if __name__ == "__main__":
     STUDY_PATH = Path(os.getcwd() + os.path.normpath("/data/model/studies"))
 
     tuner = Tuner(DATA_PATH, epochs=1, direction="minimize")
-    best_trial = tuner.optimize(n_trials=3)
+    best_trial = tuner.optimize(n_trials=30)
     tuner.saveStudy(STUDY_PATH)
     params = {
         "n_layers": 2,
