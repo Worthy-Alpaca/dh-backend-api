@@ -22,6 +22,7 @@ XMOD = 1
 RANDOM_PROBLEMS = (0, 0)
 # DROPOFF = 0.1
 PICKUP = 0.1
+GLOBAL_TIME = []
 
 
 class Manufacturing:
@@ -56,8 +57,10 @@ class Manufacturing:
                 for key in machine:
                     self.feedercarts[key] = machine[key]
 
-    def __calcVector(self, vectorA: tuple, vectorB: tuple, velocity: float) -> float:
-        """Calculates the pathlength between two given vectors
+    def __calcTravelTime(
+        self, vectorA: tuple, vectorB: tuple, velocity: float
+    ) -> float:
+        """Calculates the travel time between two given location vectors.
 
         Args:
             vectorA (tuple): Start locationvector.
@@ -135,8 +138,10 @@ class Manufacturing:
                         # velocity used is Vmean from both machines
                         Vmean = 1483.635
                         TIME = (
-                            self.__calcVector(location_vector_A, self.toolPickup, Vmean)
-                            + self.__calcVector(
+                            self.__calcTravelTime(
+                                location_vector_A, self.toolPickup, Vmean
+                            )
+                            + self.__calcTravelTime(
                                 self.toolPickup, location_vector_A, Vmean
                             )
                             + 2
@@ -186,7 +191,9 @@ class Manufacturing:
                             int(nextcart_coordinates[1]),
                         )
                         TIME = (
-                            self.__calcVector(location_vector_A, next_pickup, velocity)
+                            self.__calcTravelTime(
+                                location_vector_A, next_pickup, velocity
+                            )
                             + TIME
                             + PICKUP
                         )
@@ -201,10 +208,10 @@ class Manufacturing:
                             (row.X + self.OFFSET_X + offset_row[0]),
                             (row.Y + self.OFFSET_Y + offset_row[1]),
                         )
-                        checkpoint = self.__calcVector(
+                        checkpoint = self.__calcTravelTime(
                             loc_vector_A, self.CHECKPOINT, velocity
                         )
-                        path = self.__calcVector(
+                        path = self.__calcTravelTime(
                             self.CHECKPOINT, loc_vector_B, velocity
                         )
                         TIME = path + TIME + DROPOFF + checkpoint
@@ -218,7 +225,7 @@ class Manufacturing:
                         # loop over queue
                         for i in multiPick:
                             # calculate path and time between components
-                            multiPath = self.__calcVector(current_pos, i, velocity)
+                            multiPath = self.__calcTravelTime(current_pos, i, velocity)
                             TIME = (multiPath) + TIME + DROPOFF
                             current_pos = i
                         multiPick.clear()
@@ -243,7 +250,7 @@ class Manufacturing:
                         )
                         TIME = (
                             (
-                                self.__calcVector(
+                                self.__calcTravelTime(
                                     next_pickup_vector, current_pos, velocity
                                 )
                             )
@@ -252,17 +259,17 @@ class Manufacturing:
                         )
 
                     elif row.Task == "Fiducial":
-                        path_length = self.__calcVector(
+                        path_length = self.__calcTravelTime(
                             (0, 0), location_vector_B, velocity
                         )
                         TIME = (path_length) + TIME
 
                     else:
                         # calculate the path/time for a single pickup
-                        path_length = self.__calcVector(
+                        path_length = self.__calcTravelTime(
                             location_vector_A, self.CHECKPOINT, velocity
                         )
-                        checkpoint = self.__calcVector(
+                        checkpoint = self.__calcTravelTime(
                             self.CHECKPOINT, location_vector_B, velocity
                         )
                         TIME = (path_length) + TIME + DROPOFF + checkpoint
@@ -290,7 +297,7 @@ class Manufacturing:
 
                         TIME = (
                             (
-                                self.__calcVector(
+                                self.__calcTravelTime(
                                     next_pickup_vector, location_vector_B, velocity
                                 )
                             )
@@ -300,16 +307,18 @@ class Manufacturing:
                         )
 
                 elif row.Task == "Fiducial":
-                    path_length = self.__calcVector((0, 0), location_vector_B, velocity)
+                    path_length = self.__calcTravelTime(
+                        (0, 0), location_vector_B, velocity
+                    )
                     TIME = (path_length) + TIME
 
                 else:
                     # all components get treated with single pick
                     # regardless if they can be multipicked
-                    path_length = self.__calcVector(
+                    path_length = self.__calcTravelTime(
                         location_vector_A, self.CHECKPOINT, velocity
                     )
-                    checkpoint = self.__calcVector(
+                    checkpoint = self.__calcTravelTime(
                         self.CHECKPOINT, location_vector_B, velocity
                     )
                     TIME = (path_length) + TIME + DROPOFF + checkpoint
@@ -334,7 +343,7 @@ class Manufacturing:
                     )
                     TIME = (
                         (
-                            self.__calcVector(
+                            self.__calcTravelTime(
                                 location_vector_B, next_pickup_vector, velocity
                             )
                         )
@@ -342,7 +351,7 @@ class Manufacturing:
                         + DROPOFF
                         + PICKUP
                     )
-
+                GLOBAL_TIME.append(TIME)
                 # saving coordinates for visual plotting
                 self.plotting_x.append(plot_coordinates[0])
                 self.plotting_y.append(plot_coordinates[1])
@@ -370,9 +379,7 @@ class Manufacturing:
         time = 0
         plotX = []
         plotY = []
-        import time as tm
 
-        start_time = tm.time()
         with concurrent.futures.ThreadPoolExecutor() as executor:
             for i in self.offsets:
 
@@ -382,7 +389,6 @@ class Manufacturing:
                 time = time + iter_data["time"]
                 plotX.append(iter_data["plot_x"])
                 plotY.append(iter_data["plot_y"])
-        # print("--- %s seconds ---" % (tm.time() - start_time))
         if plotPCB == True:
             return {
                 "time": time,
@@ -411,7 +417,7 @@ if __name__ == "__main__":
 
     path = Path(os.getcwd() + os.path.normpath("/data/3160194"))
     dataloader = DataLoader(path)
-    machine = Machine("M20", 19000, 4)
+    machine = Machine("M20")
     manufacturing = Manufacturing(dataloader(), machine)
     manuData = manufacturing(multiPickOption=True, multithread=False, plotPCB=True)
     print(manuData["plot_x"])
