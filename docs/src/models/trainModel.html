@@ -146,7 +146,7 @@ class TrainModel:
         )
         # creating timestamp and run name for tensorboard
         timestamp = datetime.now().strftime(&#34;%m-%d-%Y_%H_%M_%S&#34;)
-        self.run_name = f&#34;{self.optimizer.__class__.__name__}_{self.loss_function.__clss__.__name__}-{self.epochs}@{timestamp}&#34;
+        self.run_name = f&#34;{self.optimizer.__class__.__name__}_{self.loss_function.__class__.__name__}-{self.epochs}@{timestamp}&#34;
         # creating tensorboard integrationa
         self.writer = SummaryWriter(os.getcwd() + os.path.normpath(&#34;/data/tensorboard&#34;))
         # adding Model overview graph to tensorboard
@@ -378,7 +378,7 @@ class TrainModel:
             inverse (bool): If an inverse transformation should be done to the data input. Defaults to False.
 
         Returns:
-            _type_: _description_
+            np.ndarray: The Scaled Data.
         &#34;&#34;&#34;
         if inverse:
             return self.scaleY.inverse_transform(data)
@@ -436,6 +436,7 @@ class TrainModel:
         df[&#34;machine&#34;] = df[&#34;machine&#34;].cat.codes.values
         # dropping NaN values
         df = df.dropna()
+        df = df[df.timeNeeded != 0]
         # splitting data in features and labels
         x = df.drop([&#34;timeNeeded&#34;], axis=1)
         y = df[[&#34;timeNeeded&#34;]]
@@ -596,7 +597,7 @@ if __name__ == &#34;__main__&#34;:
         )
         # creating timestamp and run name for tensorboard
         timestamp = datetime.now().strftime(&#34;%m-%d-%Y_%H_%M_%S&#34;)
-        self.run_name = f&#34;{self.optimizer.__class__.__name__}_{self.loss_function.__clss__.__name__}-{self.epochs}@{timestamp}&#34;
+        self.run_name = f&#34;{self.optimizer.__class__.__name__}_{self.loss_function.__class__.__name__}-{self.epochs}@{timestamp}&#34;
         # creating tensorboard integrationa
         self.writer = SummaryWriter(os.getcwd() + os.path.normpath(&#34;/data/tensorboard&#34;))
         # adding Model overview graph to tensorboard
@@ -828,7 +829,7 @@ if __name__ == &#34;__main__&#34;:
             inverse (bool): If an inverse transformation should be done to the data input. Defaults to False.
 
         Returns:
-            _type_: _description_
+            np.ndarray: The Scaled Data.
         &#34;&#34;&#34;
         if inverse:
             return self.scaleY.inverse_transform(data)
@@ -886,6 +887,7 @@ if __name__ == &#34;__main__&#34;:
         df[&#34;machine&#34;] = df[&#34;machine&#34;].cat.codes.values
         # dropping NaN values
         df = df.dropna()
+        df = df[df.timeNeeded != 0]
         # splitting data in features and labels
         x = df.drop([&#34;timeNeeded&#34;], axis=1)
         y = df[[&#34;timeNeeded&#34;]]
@@ -1007,7 +1009,7 @@ if __name__ == &#34;__main__&#34;:
     )
     # creating timestamp and run name for tensorboard
     timestamp = datetime.now().strftime(&#34;%m-%d-%Y_%H_%M_%S&#34;)
-    self.run_name = f&#34;{self.optimizer.__class__.__name__}_{self.loss_function.__clss__.__name__}-{self.epochs}@{timestamp}&#34;
+    self.run_name = f&#34;{self.optimizer.__class__.__name__}_{self.loss_function.__class__.__name__}-{self.epochs}@{timestamp}&#34;
     # creating tensorboard integrationa
     self.writer = SummaryWriter(os.getcwd() + os.path.normpath(&#34;/data/tensorboard&#34;))
     # adding Model overview graph to tensorboard
@@ -1166,6 +1168,7 @@ if __name__ == &#34;__main__&#34;:
     df[&#34;machine&#34;] = df[&#34;machine&#34;].cat.codes.values
     # dropping NaN values
     df = df.dropna()
+    df = df[df.timeNeeded != 0]
     # splitting data in features and labels
     x = df.drop([&#34;timeNeeded&#34;], axis=1)
     y = df[[&#34;timeNeeded&#34;]]
@@ -1239,8 +1242,8 @@ if __name__ == &#34;__main__&#34;:
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>_type_</code></dt>
-<dd><em>description</em></dd>
+<dt><code>np.ndarray</code></dt>
+<dd>The Scaled Data.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -1257,7 +1260,7 @@ if __name__ == &#34;__main__&#34;:
         inverse (bool): If an inverse transformation should be done to the data input. Defaults to False.
 
     Returns:
-        _type_: _description_
+        np.ndarray: The Scaled Data.
     &#34;&#34;&#34;
     if inverse:
         return self.scaleY.inverse_transform(data)
