@@ -114,8 +114,8 @@ class TrainModel:
         )
         # creating timestamp and run name for tensorboard
         timestamp = datetime.now().strftime("%m-%d-%Y_%H_%M_%S")
-        self.run_name = f"{self.optimizer.__class__.__name__}_{self.loss_function.__class__.__name__}-{self.epochs}@{timestamp}"
-        # creating tensorboard integration
+        self.run_name = f"{self.optimizer.__class__.__name__}_{self.loss_function.__clss__.__name__}-{self.epochs}@{timestamp}"
+        # creating tensorboard integrationa
         self.writer = SummaryWriter(os.getcwd() + os.path.normpath("/data/tensorboard"))
         # adding Model overview graph to tensorboard
         data, labels = next(iter(trainLoader))
@@ -124,9 +124,20 @@ class TrainModel:
             summary(self.model, input_size=data.shape)
 
         # running training and testing loop
+        mean_train_loss = 0.0
+        mean_val_loss = 0.0
+        mean_train_acc = 0.0
+        mean_val_acc = 0.0
         for epoch in range(epochs):
             train_loss, train_acc = self.__train(trainLoader, epoch)
             val_loss, val_acc = self.__validate(testLoader, epoch)
+            mean_train_loss += train_loss
+            mean_val_loss += val_loss
+            mean_train_acc += train_acc
+            mean_val_acc += val_acc
+            if val_loss == np.nan:
+                self.writer.close()
+                raise optuna.exceptions.TrialPruned()
             # logic for trial pruning
             if trial == None:
                 continue
@@ -143,7 +154,10 @@ class TrainModel:
         if trial == None:
             self.saveInternalStates(PATH)
         # returning calculated values
-        return (train_loss, train_acc), (val_loss, val_acc)
+        return (mean_train_loss / epochs, mean_train_acc / epochs), (
+            mean_val_loss / epochs,
+            mean_val_acc / epochs,
+        )
 
     def __train(
         self, trainLoader: DataLoader, epoch: int
