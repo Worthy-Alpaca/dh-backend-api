@@ -1,0 +1,1227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>src.simulation.manufacturing API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>src.simulation.manufacturing</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import math
+import sys
+import os
+import itertools
+from collections import deque
+from pathlib import Path
+import concurrent.futures
+import time as tm
+from typing import Union
+import pandas as pd
+from tqdm import tqdm
+
+PACKAGE_PARENT = &#34;../&#34;
+SCRIPT_DIR = os.path.dirname(
+    os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__)))
+)
+sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
+try:
+    from simulation.machine import Machine
+except:
+    from src.simulation.machine import Machine
+
+global XMOD
+XMOD = 1
+RANDOM_PROBLEMS = (0, 0)
+# DROPOFF = 0.1
+PICKUP = 0.1
+GLOBAL_TIME = []
+
+
+class Manufacturing:
+    def __init__(self, data: tuple, machine: Machine):
+        &#34;&#34;&#34;Simulates the manufacturing process in SMD machines M10 and M20.
+
+        Args:
+            data (tuple): The current Dataset.
+            machine (Machine): The current Machine.
+        &#34;&#34;&#34;
+        # assign machine property
+        self.machine = machine
+        self.components = data[1]
+        self.data: pd.DataFrame = data[0]
+        self.offsets = data[2]
+        self.heads = {}
+        # add offsets in case of SMD machine
+        if machine.offsets is not None:
+            # offset for the PCB arrival point
+            self.OFFSET_X = machine.offsets[&#34;pcb&#34;][0]
+            self.OFFSET_Y = machine.offsets[&#34;pcb&#34;][1]
+            # coordinates for the visual checkpoint
+            self.CHECKPOINT = (
+                machine.offsets[&#34;checkpoint&#34;][0],
+                machine.offsets[&#34;checkpoint&#34;][1],
+            )
+            # coordinates for the tool staging area
+            self.toolPickup = (machine.offsets[&#34;tools&#34;][0], machine.offsets[&#34;tools&#34;][1])
+            self.feedercarts = {}
+            # offsets for feedercart positions
+            for machine in machine.offsets[&#34;feedercarts&#34;]:
+                for key in machine:
+                    self.feedercarts[key] = machine[key]
+
+    def __calcTravelTime(
+        self, vectorA: tuple, vectorB: tuple, velocity: float
+    ) -&gt; float:
+        &#34;&#34;&#34;Calculates the travel time between two given location vectors.
+
+        Args:
+            vectorA (tuple): Start locationvector.
+            vectorB (tuple): End locationvector.
+            velocity (float): The current velocity to use.
+
+        Returns:
+            float: The calculated travel time.
+        &#34;&#34;&#34;
+        # calculate the connection vector
+        vector_AB = (
+            (float(vectorB[0]) - float(vectorA[0])),
+            (float(vectorB[1]) - float(vectorA[1])),
+        )
+        # calculate the length of the connection vector
+        path_length = math.sqrt(vector_AB[0] ** 2 + vector_AB[1] ** 2)
+        # calculate the travel time and return it
+        return path_length / velocity
+
+    def calcTime(self, offset_row: tuple, useIdealState: bool):
+        &#34;&#34;&#34;Calculates the time for a given offset.
+
+        Args:
+            offset_row (tuple): The current offset.
+            useIdealState (bool): If the ideal state of the machine should be used. Impacts the veloticy used.
+        &#34;&#34;&#34;
+
+        def isNan(string):
+            return string != string
+
+        # assigning properties for later use
+        TIME = 0
+        self.plotting_x = []
+        self.plotting_y = []
+        multiPick = deque()
+        blocks = []
+        # dividing the placement data into blocks
+        blockId = (self.data[&#34;Task&#34;] == &#34;Start Block&#34;).cumsum()
+        for n, g in self.data.groupby(blockId):
+            g = g.dropna()
+            blocks.append(g)
+        # Loop over all blocks in the placementdata
+        for block in blocks:
+            # calculate the
+            for index, row in tqdm(block.iterrows()):
+                # check for NaN values and continue if found
+                if isNan(row.Code):
+                    continue
+                if row.Task == &#34;Start Block&#34;:
+                    continue
+                # calculating the path, adding offset for coordinate transformation
+                lookUp = self.components[&#34;index&#34;].str.match(row.Code)
+                lookupTable = self.components[lookUp]
+                cart_coordinates = self.feedercarts[lookupTable.FeedStyle.max()]
+                # creating location vectors
+                location_vector_A = (
+                    int(cart_coordinates[0]) + (lookupTable.ST_No.max() * 10),
+                    int(cart_coordinates[1]),
+                )
+                location_vector_B = (
+                    (row.X + self.OFFSET_X + offset_row[0]),
+                    (row.Y + self.OFFSET_Y + offset_row[1]),
+                )
+                plot_coordinates = ((row.X + offset_row[0]), (row.Y + offset_row[1]))
+
+                currentHead = lookupTable.Nozzle_No.max()
+                if currentHead not in self.heads.keys():
+                    if len(self.heads) &lt; self.machine.nozHeads:
+                        self.heads[currentHead] = tm.time()
+                    else:
+                        removeKey = min(self.heads, key=self.heads.get)
+                        self.heads.pop(removeKey, None)
+                        removeKey = min(self.heads, key=self.heads.get)
+                        self.heads.pop(removeKey, None)
+                        # velocity used is Vmean from both machines
+                        Vmean = 1483.635
+                        TIME = (
+                            self.__calcTravelTime(
+                                location_vector_A, self.toolPickup, Vmean
+                            )
+                            + self.__calcTravelTime(
+                                self.toolPickup, location_vector_A, Vmean
+                            )
+                            + 2
+                            + TIME
+                        )
+                        self.heads[currentHead] = tm.time()
+                else:
+                    self.heads[currentHead] = tm.time()
+
+                # calculating velocity based on component or idealState
+                velocity = 0
+                if useIdealState == False:
+                    velocity = lookupTable.mean_acceleration.max()
+                else:
+                    if self.machine.machineName.lower() == &#34;m20&#34;:
+                        velocity = 1345.87
+                    elif self.machine.machineName.lower() == &#34;m10&#34;:
+                        velocity = 1621.4
+
+                DROPOFF = (lookupTable.Dropoff.max() / 1000) * 0.1
+
+                if self.multiPickOption == True:
+                    # picking components with multiple heads at once
+                    # path changes from &#34;Pickup -&gt; Component&#34; to &#34;Pickup1 -&gt; Pickup2 -&gt; Pickup3 -&gt; Component3 -&gt; Component2 -&gt; Component1&#34;
+                    if row.Task == &#34;Multiple Pickup&#34;:
+                        # append component vector to queue
+                        multiPick.append(location_vector_B)
+
+                        # calculate path/time to next pickup
+                        next_index = index + 1
+                        while next_index not in block.index:
+                            if next_index &gt;= block.index.max():
+                                next_index = next_index - 1
+                                break
+                            next_index = next_index + 1
+                        nextLookUpTable = self.components[
+                            self.components[&#34;index&#34;].str.match(
+                                block.loc[next_index, &#34;Code&#34;]
+                            )
+                        ]
+                        nextcart_coordinates = self.feedercarts[
+                            nextLookUpTable.FeedStyle.max()
+                        ]
+                        next_pickup = (
+                            int(nextcart_coordinates[0])
+                            + (nextLookUpTable.ST_No.max() * 10),
+                            int(nextcart_coordinates[1]),
+                        )
+                        TIME = (
+                            self.__calcTravelTime(
+                                location_vector_A, next_pickup, velocity
+                            )
+                            + TIME
+                            + PICKUP
+                        )
+
+                    elif row.Task == &#34;End Multiple Pickup&#34;:
+                        # calculate the path to the current component
+                        loc_vector_A = (
+                            lookupTable.Pickup_X.max(),
+                            lookupTable.Pickup_Y.max(),
+                        )
+                        loc_vector_B = (
+                            (row.X + self.OFFSET_X + offset_row[0]),
+                            (row.Y + self.OFFSET_Y + offset_row[1]),
+                        )
+                        checkpoint = self.__calcTravelTime(
+                            loc_vector_A, self.CHECKPOINT, velocity
+                        )
+                        path = self.__calcTravelTime(
+                            self.CHECKPOINT, loc_vector_B, velocity
+                        )
+                        TIME = path + TIME + DROPOFF + checkpoint
+
+                        # set the current component vector as the current postition
+                        current_pos = location_vector_B
+
+                        # rotate the queue
+                        multiPick.rotate()
+
+                        # loop over queue
+                        for i in multiPick:
+                            # calculate path and time between components
+                            multiPath = self.__calcTravelTime(current_pos, i, velocity)
+                            TIME = (multiPath) + TIME + DROPOFF
+                            current_pos = i
+                        multiPick.clear()
+
+                        # calculate the path/time to return to the next pickup point
+                        next_index = index + 1
+                        while next_index not in block.index:
+                            if next_index &gt;= block.index.max():
+                                next_index = next_index - 1
+                                break
+                            next_index = next_index + 1
+                        innerMost = block.loc[next_index, &#34;Code&#34;]
+                        outerMost = self.components[&#34;index&#34;].str.match(innerMost)
+                        nextLookUpTable = self.components[outerMost]
+                        nextcart_coordinates = self.feedercarts[
+                            nextLookUpTable.FeedStyle.max()
+                        ]
+                        next_pickup_vector = (
+                            int(nextcart_coordinates[0])
+                            + (nextLookUpTable.ST_No.max() * 10),
+                            int(nextcart_coordinates[1]),
+                        )
+                        TIME = (
+                            (
+                                self.__calcTravelTime(
+                                    next_pickup_vector, current_pos, velocity
+                                )
+                            )
+                            + TIME
+                            + DROPOFF
+                        )
+
+                    elif row.Task == &#34;Fiducial&#34;:
+                        path_length = self.__calcTravelTime(
+                            (0, 0), location_vector_B, velocity
+                        )
+                        TIME = (path_length) + TIME
+
+                    else:
+                        # calculate the path/time for a single pickup
+                        path_length = self.__calcTravelTime(
+                            location_vector_A, self.CHECKPOINT, velocity
+                        )
+                        checkpoint = self.__calcTravelTime(
+                            self.CHECKPOINT, location_vector_B, velocity
+                        )
+                        TIME = (path_length) + TIME + DROPOFF + checkpoint
+
+                        # calculate the path/time to return to the next pickup point
+                        next_index = index + 1
+                        while next_index not in block.index:
+                            if next_index &gt; block.index.max():
+                                next_index = next_index - 1
+                                break
+                            next_index = next_index + 1
+                        nextLookUpTable = self.components[
+                            self.components[&#34;index&#34;].str.match(
+                                block.loc[next_index, &#34;Code&#34;]
+                            )
+                        ]
+                        nextcart_coordinates = self.feedercarts[
+                            nextLookUpTable.FeedStyle.max()
+                        ]
+                        next_pickup_vector = (
+                            int(nextcart_coordinates[0])
+                            + (nextLookUpTable.ST_No.max() * 10),
+                            int(nextcart_coordinates[1]),
+                        )
+
+                        TIME = (
+                            (
+                                self.__calcTravelTime(
+                                    next_pickup_vector, location_vector_B, velocity
+                                )
+                            )
+                            + TIME
+                            + DROPOFF
+                            + PICKUP
+                        )
+
+                elif row.Task == &#34;Fiducial&#34;:
+                    path_length = self.__calcTravelTime(
+                        (0, 0), location_vector_B, velocity
+                    )
+                    TIME = (path_length) + TIME
+
+                else:
+                    # all components get treated with single pick
+                    # regardless if they can be multipicked
+                    path_length = self.__calcTravelTime(
+                        location_vector_A, self.CHECKPOINT, velocity
+                    )
+                    checkpoint = self.__calcTravelTime(
+                        self.CHECKPOINT, location_vector_B, velocity
+                    )
+                    TIME = (path_length) + TIME + DROPOFF + checkpoint
+                    next_index = index + 1
+                    while next_index not in block.index:
+                        if next_index &gt; block.index.max():
+                            next_index = next_index - 1
+                            break
+                        next_index = next_index + 1
+                    nextLookUpTable = self.components[
+                        self.components[&#34;index&#34;].str.match(
+                            block.loc[next_index, &#34;Code&#34;]
+                        )
+                    ]
+                    nextcart_coordinates = self.feedercarts[
+                        nextLookUpTable.FeedStyle.max()
+                    ]
+                    next_pickup_vector = (
+                        int(nextcart_coordinates[0])
+                        + (nextLookUpTable.ST_No.max() * 10),
+                        int(nextcart_coordinates[1]),
+                    )
+                    TIME = (
+                        (
+                            self.__calcTravelTime(
+                                location_vector_B, next_pickup_vector, velocity
+                            )
+                        )
+                        + TIME
+                        + DROPOFF
+                        + PICKUP
+                    )
+                GLOBAL_TIME.append(TIME)
+                # saving coordinates for visual plotting
+                self.plotting_x.append(plot_coordinates[0])
+                self.plotting_y.append(plot_coordinates[1])
+
+        return {&#34;time&#34;: TIME, &#34;plot_x&#34;: self.plotting_x, &#34;plot_y&#34;: self.plotting_y}
+
+    def __call__(
+        self,
+        multiPickOption: bool = True,
+        plotPCB: bool = False,
+        useIdealState: bool = False,
+    ) -&gt; Union[float, dict]:
+        &#34;&#34;&#34;Start the assembly simulation.
+
+        Args:
+            multiPickOption (bool): If the simulation uses multipick. Multipich decreases assembly time. Defaults to True.
+            plotPCB (bool): If coordinates should be returned. If true, returns a dict instead of a float. Defaults to False
+            useIdealState (bool): If the ideal state of the machine should be used. Impacts the veloticy used.
+
+        Returns:
+            float: If plotPCB is set to False.
+            dict: If plotPCB is set to True. Contains time, plot_x, plot_y.
+        &#34;&#34;&#34;
+        self.multiPickOption = multiPickOption
+        time = 0
+        plotX = []
+        plotY = []
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            for i in self.offsets:
+
+                future = executor.submit(self.calcTime, i, useIdealState)
+                iter_data = future.result()
+
+                time = time + iter_data[&#34;time&#34;]
+                plotX.append(iter_data[&#34;plot_x&#34;])
+                plotY.append(iter_data[&#34;plot_y&#34;])
+        if plotPCB == True:
+            return {
+                &#34;time&#34;: time,
+                &#34;plot_x&#34;: list(itertools.chain.from_iterable(plotX)),
+                &#34;plot_y&#34;: list(itertools.chain.from_iterable(plotY)),
+            }
+        return time
+
+    def coating(self) -&gt; float:
+        &#34;&#34;&#34;simulates the time for coating a PCB
+
+        Returns:
+            float: The calculated time.
+        &#34;&#34;&#34;
+        velocity = 20  # mm/s
+
+        # highest coordinate on PCB
+        offset = max(self.offsets)
+        high = self.data[&#34;Y&#34;].max() + offset[1]
+        return math.sqrt(0**2 + high**2) / velocity
+
+
+if __name__ == &#34;__main__&#34;:
+    from simulation.cartsetup import CartSetup
+    from data.dataloader import DataLoader
+
+    path = Path(os.getcwd() + os.path.normpath(&#34;/data/3160194&#34;))
+    dataloader = DataLoader(path)
+    machine = Machine(&#34;M20&#34;)
+    manufacturing = Manufacturing(dataloader(), machine)
+    manuData = manufacturing(multiPickOption=True, multithread=False, plotPCB=True)
+    print(manuData[&#34;plot_x&#34;])</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="src.simulation.manufacturing.Manufacturing"><code class="flex name class">
+<span>class <span class="ident">Manufacturing</span></span>
+<span>(</span><span>data: tuple, machine: simulation.machine.Machine)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Simulates the manufacturing process in SMD machines M10 and M20.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>The current Dataset.</dd>
+<dt><strong><code>machine</code></strong> :&ensp;<code>Machine</code></dt>
+<dd>The current Machine.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Manufacturing:
+    def __init__(self, data: tuple, machine: Machine):
+        &#34;&#34;&#34;Simulates the manufacturing process in SMD machines M10 and M20.
+
+        Args:
+            data (tuple): The current Dataset.
+            machine (Machine): The current Machine.
+        &#34;&#34;&#34;
+        # assign machine property
+        self.machine = machine
+        self.components = data[1]
+        self.data: pd.DataFrame = data[0]
+        self.offsets = data[2]
+        self.heads = {}
+        # add offsets in case of SMD machine
+        if machine.offsets is not None:
+            # offset for the PCB arrival point
+            self.OFFSET_X = machine.offsets[&#34;pcb&#34;][0]
+            self.OFFSET_Y = machine.offsets[&#34;pcb&#34;][1]
+            # coordinates for the visual checkpoint
+            self.CHECKPOINT = (
+                machine.offsets[&#34;checkpoint&#34;][0],
+                machine.offsets[&#34;checkpoint&#34;][1],
+            )
+            # coordinates for the tool staging area
+            self.toolPickup = (machine.offsets[&#34;tools&#34;][0], machine.offsets[&#34;tools&#34;][1])
+            self.feedercarts = {}
+            # offsets for feedercart positions
+            for machine in machine.offsets[&#34;feedercarts&#34;]:
+                for key in machine:
+                    self.feedercarts[key] = machine[key]
+
+    def __calcTravelTime(
+        self, vectorA: tuple, vectorB: tuple, velocity: float
+    ) -&gt; float:
+        &#34;&#34;&#34;Calculates the travel time between two given location vectors.
+
+        Args:
+            vectorA (tuple): Start locationvector.
+            vectorB (tuple): End locationvector.
+            velocity (float): The current velocity to use.
+
+        Returns:
+            float: The calculated travel time.
+        &#34;&#34;&#34;
+        # calculate the connection vector
+        vector_AB = (
+            (float(vectorB[0]) - float(vectorA[0])),
+            (float(vectorB[1]) - float(vectorA[1])),
+        )
+        # calculate the length of the connection vector
+        path_length = math.sqrt(vector_AB[0] ** 2 + vector_AB[1] ** 2)
+        # calculate the travel time and return it
+        return path_length / velocity
+
+    def calcTime(self, offset_row: tuple, useIdealState: bool):
+        &#34;&#34;&#34;Calculates the time for a given offset.
+
+        Args:
+            offset_row (tuple): The current offset.
+            useIdealState (bool): If the ideal state of the machine should be used. Impacts the veloticy used.
+        &#34;&#34;&#34;
+
+        def isNan(string):
+            return string != string
+
+        # assigning properties for later use
+        TIME = 0
+        self.plotting_x = []
+        self.plotting_y = []
+        multiPick = deque()
+        blocks = []
+        # dividing the placement data into blocks
+        blockId = (self.data[&#34;Task&#34;] == &#34;Start Block&#34;).cumsum()
+        for n, g in self.data.groupby(blockId):
+            g = g.dropna()
+            blocks.append(g)
+        # Loop over all blocks in the placementdata
+        for block in blocks:
+            # calculate the
+            for index, row in tqdm(block.iterrows()):
+                # check for NaN values and continue if found
+                if isNan(row.Code):
+                    continue
+                if row.Task == &#34;Start Block&#34;:
+                    continue
+                # calculating the path, adding offset for coordinate transformation
+                lookUp = self.components[&#34;index&#34;].str.match(row.Code)
+                lookupTable = self.components[lookUp]
+                cart_coordinates = self.feedercarts[lookupTable.FeedStyle.max()]
+                # creating location vectors
+                location_vector_A = (
+                    int(cart_coordinates[0]) + (lookupTable.ST_No.max() * 10),
+                    int(cart_coordinates[1]),
+                )
+                location_vector_B = (
+                    (row.X + self.OFFSET_X + offset_row[0]),
+                    (row.Y + self.OFFSET_Y + offset_row[1]),
+                )
+                plot_coordinates = ((row.X + offset_row[0]), (row.Y + offset_row[1]))
+
+                currentHead = lookupTable.Nozzle_No.max()
+                if currentHead not in self.heads.keys():
+                    if len(self.heads) &lt; self.machine.nozHeads:
+                        self.heads[currentHead] = tm.time()
+                    else:
+                        removeKey = min(self.heads, key=self.heads.get)
+                        self.heads.pop(removeKey, None)
+                        removeKey = min(self.heads, key=self.heads.get)
+                        self.heads.pop(removeKey, None)
+                        # velocity used is Vmean from both machines
+                        Vmean = 1483.635
+                        TIME = (
+                            self.__calcTravelTime(
+                                location_vector_A, self.toolPickup, Vmean
+                            )
+                            + self.__calcTravelTime(
+                                self.toolPickup, location_vector_A, Vmean
+                            )
+                            + 2
+                            + TIME
+                        )
+                        self.heads[currentHead] = tm.time()
+                else:
+                    self.heads[currentHead] = tm.time()
+
+                # calculating velocity based on component or idealState
+                velocity = 0
+                if useIdealState == False:
+                    velocity = lookupTable.mean_acceleration.max()
+                else:
+                    if self.machine.machineName.lower() == &#34;m20&#34;:
+                        velocity = 1345.87
+                    elif self.machine.machineName.lower() == &#34;m10&#34;:
+                        velocity = 1621.4
+
+                DROPOFF = (lookupTable.Dropoff.max() / 1000) * 0.1
+
+                if self.multiPickOption == True:
+                    # picking components with multiple heads at once
+                    # path changes from &#34;Pickup -&gt; Component&#34; to &#34;Pickup1 -&gt; Pickup2 -&gt; Pickup3 -&gt; Component3 -&gt; Component2 -&gt; Component1&#34;
+                    if row.Task == &#34;Multiple Pickup&#34;:
+                        # append component vector to queue
+                        multiPick.append(location_vector_B)
+
+                        # calculate path/time to next pickup
+                        next_index = index + 1
+                        while next_index not in block.index:
+                            if next_index &gt;= block.index.max():
+                                next_index = next_index - 1
+                                break
+                            next_index = next_index + 1
+                        nextLookUpTable = self.components[
+                            self.components[&#34;index&#34;].str.match(
+                                block.loc[next_index, &#34;Code&#34;]
+                            )
+                        ]
+                        nextcart_coordinates = self.feedercarts[
+                            nextLookUpTable.FeedStyle.max()
+                        ]
+                        next_pickup = (
+                            int(nextcart_coordinates[0])
+                            + (nextLookUpTable.ST_No.max() * 10),
+                            int(nextcart_coordinates[1]),
+                        )
+                        TIME = (
+                            self.__calcTravelTime(
+                                location_vector_A, next_pickup, velocity
+                            )
+                            + TIME
+                            + PICKUP
+                        )
+
+                    elif row.Task == &#34;End Multiple Pickup&#34;:
+                        # calculate the path to the current component
+                        loc_vector_A = (
+                            lookupTable.Pickup_X.max(),
+                            lookupTable.Pickup_Y.max(),
+                        )
+                        loc_vector_B = (
+                            (row.X + self.OFFSET_X + offset_row[0]),
+                            (row.Y + self.OFFSET_Y + offset_row[1]),
+                        )
+                        checkpoint = self.__calcTravelTime(
+                            loc_vector_A, self.CHECKPOINT, velocity
+                        )
+                        path = self.__calcTravelTime(
+                            self.CHECKPOINT, loc_vector_B, velocity
+                        )
+                        TIME = path + TIME + DROPOFF + checkpoint
+
+                        # set the current component vector as the current postition
+                        current_pos = location_vector_B
+
+                        # rotate the queue
+                        multiPick.rotate()
+
+                        # loop over queue
+                        for i in multiPick:
+                            # calculate path and time between components
+                            multiPath = self.__calcTravelTime(current_pos, i, velocity)
+                            TIME = (multiPath) + TIME + DROPOFF
+                            current_pos = i
+                        multiPick.clear()
+
+                        # calculate the path/time to return to the next pickup point
+                        next_index = index + 1
+                        while next_index not in block.index:
+                            if next_index &gt;= block.index.max():
+                                next_index = next_index - 1
+                                break
+                            next_index = next_index + 1
+                        innerMost = block.loc[next_index, &#34;Code&#34;]
+                        outerMost = self.components[&#34;index&#34;].str.match(innerMost)
+                        nextLookUpTable = self.components[outerMost]
+                        nextcart_coordinates = self.feedercarts[
+                            nextLookUpTable.FeedStyle.max()
+                        ]
+                        next_pickup_vector = (
+                            int(nextcart_coordinates[0])
+                            + (nextLookUpTable.ST_No.max() * 10),
+                            int(nextcart_coordinates[1]),
+                        )
+                        TIME = (
+                            (
+                                self.__calcTravelTime(
+                                    next_pickup_vector, current_pos, velocity
+                                )
+                            )
+                            + TIME
+                            + DROPOFF
+                        )
+
+                    elif row.Task == &#34;Fiducial&#34;:
+                        path_length = self.__calcTravelTime(
+                            (0, 0), location_vector_B, velocity
+                        )
+                        TIME = (path_length) + TIME
+
+                    else:
+                        # calculate the path/time for a single pickup
+                        path_length = self.__calcTravelTime(
+                            location_vector_A, self.CHECKPOINT, velocity
+                        )
+                        checkpoint = self.__calcTravelTime(
+                            self.CHECKPOINT, location_vector_B, velocity
+                        )
+                        TIME = (path_length) + TIME + DROPOFF + checkpoint
+
+                        # calculate the path/time to return to the next pickup point
+                        next_index = index + 1
+                        while next_index not in block.index:
+                            if next_index &gt; block.index.max():
+                                next_index = next_index - 1
+                                break
+                            next_index = next_index + 1
+                        nextLookUpTable = self.components[
+                            self.components[&#34;index&#34;].str.match(
+                                block.loc[next_index, &#34;Code&#34;]
+                            )
+                        ]
+                        nextcart_coordinates = self.feedercarts[
+                            nextLookUpTable.FeedStyle.max()
+                        ]
+                        next_pickup_vector = (
+                            int(nextcart_coordinates[0])
+                            + (nextLookUpTable.ST_No.max() * 10),
+                            int(nextcart_coordinates[1]),
+                        )
+
+                        TIME = (
+                            (
+                                self.__calcTravelTime(
+                                    next_pickup_vector, location_vector_B, velocity
+                                )
+                            )
+                            + TIME
+                            + DROPOFF
+                            + PICKUP
+                        )
+
+                elif row.Task == &#34;Fiducial&#34;:
+                    path_length = self.__calcTravelTime(
+                        (0, 0), location_vector_B, velocity
+                    )
+                    TIME = (path_length) + TIME
+
+                else:
+                    # all components get treated with single pick
+                    # regardless if they can be multipicked
+                    path_length = self.__calcTravelTime(
+                        location_vector_A, self.CHECKPOINT, velocity
+                    )
+                    checkpoint = self.__calcTravelTime(
+                        self.CHECKPOINT, location_vector_B, velocity
+                    )
+                    TIME = (path_length) + TIME + DROPOFF + checkpoint
+                    next_index = index + 1
+                    while next_index not in block.index:
+                        if next_index &gt; block.index.max():
+                            next_index = next_index - 1
+                            break
+                        next_index = next_index + 1
+                    nextLookUpTable = self.components[
+                        self.components[&#34;index&#34;].str.match(
+                            block.loc[next_index, &#34;Code&#34;]
+                        )
+                    ]
+                    nextcart_coordinates = self.feedercarts[
+                        nextLookUpTable.FeedStyle.max()
+                    ]
+                    next_pickup_vector = (
+                        int(nextcart_coordinates[0])
+                        + (nextLookUpTable.ST_No.max() * 10),
+                        int(nextcart_coordinates[1]),
+                    )
+                    TIME = (
+                        (
+                            self.__calcTravelTime(
+                                location_vector_B, next_pickup_vector, velocity
+                            )
+                        )
+                        + TIME
+                        + DROPOFF
+                        + PICKUP
+                    )
+                GLOBAL_TIME.append(TIME)
+                # saving coordinates for visual plotting
+                self.plotting_x.append(plot_coordinates[0])
+                self.plotting_y.append(plot_coordinates[1])
+
+        return {&#34;time&#34;: TIME, &#34;plot_x&#34;: self.plotting_x, &#34;plot_y&#34;: self.plotting_y}
+
+    def __call__(
+        self,
+        multiPickOption: bool = True,
+        plotPCB: bool = False,
+        useIdealState: bool = False,
+    ) -&gt; Union[float, dict]:
+        &#34;&#34;&#34;Start the assembly simulation.
+
+        Args:
+            multiPickOption (bool): If the simulation uses multipick. Multipich decreases assembly time. Defaults to True.
+            plotPCB (bool): If coordinates should be returned. If true, returns a dict instead of a float. Defaults to False
+            useIdealState (bool): If the ideal state of the machine should be used. Impacts the veloticy used.
+
+        Returns:
+            float: If plotPCB is set to False.
+            dict: If plotPCB is set to True. Contains time, plot_x, plot_y.
+        &#34;&#34;&#34;
+        self.multiPickOption = multiPickOption
+        time = 0
+        plotX = []
+        plotY = []
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            for i in self.offsets:
+
+                future = executor.submit(self.calcTime, i, useIdealState)
+                iter_data = future.result()
+
+                time = time + iter_data[&#34;time&#34;]
+                plotX.append(iter_data[&#34;plot_x&#34;])
+                plotY.append(iter_data[&#34;plot_y&#34;])
+        if plotPCB == True:
+            return {
+                &#34;time&#34;: time,
+                &#34;plot_x&#34;: list(itertools.chain.from_iterable(plotX)),
+                &#34;plot_y&#34;: list(itertools.chain.from_iterable(plotY)),
+            }
+        return time
+
+    def coating(self) -&gt; float:
+        &#34;&#34;&#34;simulates the time for coating a PCB
+
+        Returns:
+            float: The calculated time.
+        &#34;&#34;&#34;
+        velocity = 20  # mm/s
+
+        # highest coordinate on PCB
+        offset = max(self.offsets)
+        high = self.data[&#34;Y&#34;].max() + offset[1]
+        return math.sqrt(0**2 + high**2) / velocity</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="src.simulation.manufacturing.Manufacturing.calcTime"><code class="name flex">
+<span>def <span class="ident">calcTime</span></span>(<span>self, offset_row: tuple, useIdealState: bool)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculates the time for a given offset.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>offset_row</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>The current offset.</dd>
+<dt><strong><code>useIdealState</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If the ideal state of the machine should be used. Impacts the veloticy used.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calcTime(self, offset_row: tuple, useIdealState: bool):
+    &#34;&#34;&#34;Calculates the time for a given offset.
+
+    Args:
+        offset_row (tuple): The current offset.
+        useIdealState (bool): If the ideal state of the machine should be used. Impacts the veloticy used.
+    &#34;&#34;&#34;
+
+    def isNan(string):
+        return string != string
+
+    # assigning properties for later use
+    TIME = 0
+    self.plotting_x = []
+    self.plotting_y = []
+    multiPick = deque()
+    blocks = []
+    # dividing the placement data into blocks
+    blockId = (self.data[&#34;Task&#34;] == &#34;Start Block&#34;).cumsum()
+    for n, g in self.data.groupby(blockId):
+        g = g.dropna()
+        blocks.append(g)
+    # Loop over all blocks in the placementdata
+    for block in blocks:
+        # calculate the
+        for index, row in tqdm(block.iterrows()):
+            # check for NaN values and continue if found
+            if isNan(row.Code):
+                continue
+            if row.Task == &#34;Start Block&#34;:
+                continue
+            # calculating the path, adding offset for coordinate transformation
+            lookUp = self.components[&#34;index&#34;].str.match(row.Code)
+            lookupTable = self.components[lookUp]
+            cart_coordinates = self.feedercarts[lookupTable.FeedStyle.max()]
+            # creating location vectors
+            location_vector_A = (
+                int(cart_coordinates[0]) + (lookupTable.ST_No.max() * 10),
+                int(cart_coordinates[1]),
+            )
+            location_vector_B = (
+                (row.X + self.OFFSET_X + offset_row[0]),
+                (row.Y + self.OFFSET_Y + offset_row[1]),
+            )
+            plot_coordinates = ((row.X + offset_row[0]), (row.Y + offset_row[1]))
+
+            currentHead = lookupTable.Nozzle_No.max()
+            if currentHead not in self.heads.keys():
+                if len(self.heads) &lt; self.machine.nozHeads:
+                    self.heads[currentHead] = tm.time()
+                else:
+                    removeKey = min(self.heads, key=self.heads.get)
+                    self.heads.pop(removeKey, None)
+                    removeKey = min(self.heads, key=self.heads.get)
+                    self.heads.pop(removeKey, None)
+                    # velocity used is Vmean from both machines
+                    Vmean = 1483.635
+                    TIME = (
+                        self.__calcTravelTime(
+                            location_vector_A, self.toolPickup, Vmean
+                        )
+                        + self.__calcTravelTime(
+                            self.toolPickup, location_vector_A, Vmean
+                        )
+                        + 2
+                        + TIME
+                    )
+                    self.heads[currentHead] = tm.time()
+            else:
+                self.heads[currentHead] = tm.time()
+
+            # calculating velocity based on component or idealState
+            velocity = 0
+            if useIdealState == False:
+                velocity = lookupTable.mean_acceleration.max()
+            else:
+                if self.machine.machineName.lower() == &#34;m20&#34;:
+                    velocity = 1345.87
+                elif self.machine.machineName.lower() == &#34;m10&#34;:
+                    velocity = 1621.4
+
+            DROPOFF = (lookupTable.Dropoff.max() / 1000) * 0.1
+
+            if self.multiPickOption == True:
+                # picking components with multiple heads at once
+                # path changes from &#34;Pickup -&gt; Component&#34; to &#34;Pickup1 -&gt; Pickup2 -&gt; Pickup3 -&gt; Component3 -&gt; Component2 -&gt; Component1&#34;
+                if row.Task == &#34;Multiple Pickup&#34;:
+                    # append component vector to queue
+                    multiPick.append(location_vector_B)
+
+                    # calculate path/time to next pickup
+                    next_index = index + 1
+                    while next_index not in block.index:
+                        if next_index &gt;= block.index.max():
+                            next_index = next_index - 1
+                            break
+                        next_index = next_index + 1
+                    nextLookUpTable = self.components[
+                        self.components[&#34;index&#34;].str.match(
+                            block.loc[next_index, &#34;Code&#34;]
+                        )
+                    ]
+                    nextcart_coordinates = self.feedercarts[
+                        nextLookUpTable.FeedStyle.max()
+                    ]
+                    next_pickup = (
+                        int(nextcart_coordinates[0])
+                        + (nextLookUpTable.ST_No.max() * 10),
+                        int(nextcart_coordinates[1]),
+                    )
+                    TIME = (
+                        self.__calcTravelTime(
+                            location_vector_A, next_pickup, velocity
+                        )
+                        + TIME
+                        + PICKUP
+                    )
+
+                elif row.Task == &#34;End Multiple Pickup&#34;:
+                    # calculate the path to the current component
+                    loc_vector_A = (
+                        lookupTable.Pickup_X.max(),
+                        lookupTable.Pickup_Y.max(),
+                    )
+                    loc_vector_B = (
+                        (row.X + self.OFFSET_X + offset_row[0]),
+                        (row.Y + self.OFFSET_Y + offset_row[1]),
+                    )
+                    checkpoint = self.__calcTravelTime(
+                        loc_vector_A, self.CHECKPOINT, velocity
+                    )
+                    path = self.__calcTravelTime(
+                        self.CHECKPOINT, loc_vector_B, velocity
+                    )
+                    TIME = path + TIME + DROPOFF + checkpoint
+
+                    # set the current component vector as the current postition
+                    current_pos = location_vector_B
+
+                    # rotate the queue
+                    multiPick.rotate()
+
+                    # loop over queue
+                    for i in multiPick:
+                        # calculate path and time between components
+                        multiPath = self.__calcTravelTime(current_pos, i, velocity)
+                        TIME = (multiPath) + TIME + DROPOFF
+                        current_pos = i
+                    multiPick.clear()
+
+                    # calculate the path/time to return to the next pickup point
+                    next_index = index + 1
+                    while next_index not in block.index:
+                        if next_index &gt;= block.index.max():
+                            next_index = next_index - 1
+                            break
+                        next_index = next_index + 1
+                    innerMost = block.loc[next_index, &#34;Code&#34;]
+                    outerMost = self.components[&#34;index&#34;].str.match(innerMost)
+                    nextLookUpTable = self.components[outerMost]
+                    nextcart_coordinates = self.feedercarts[
+                        nextLookUpTable.FeedStyle.max()
+                    ]
+                    next_pickup_vector = (
+                        int(nextcart_coordinates[0])
+                        + (nextLookUpTable.ST_No.max() * 10),
+                        int(nextcart_coordinates[1]),
+                    )
+                    TIME = (
+                        (
+                            self.__calcTravelTime(
+                                next_pickup_vector, current_pos, velocity
+                            )
+                        )
+                        + TIME
+                        + DROPOFF
+                    )
+
+                elif row.Task == &#34;Fiducial&#34;:
+                    path_length = self.__calcTravelTime(
+                        (0, 0), location_vector_B, velocity
+                    )
+                    TIME = (path_length) + TIME
+
+                else:
+                    # calculate the path/time for a single pickup
+                    path_length = self.__calcTravelTime(
+                        location_vector_A, self.CHECKPOINT, velocity
+                    )
+                    checkpoint = self.__calcTravelTime(
+                        self.CHECKPOINT, location_vector_B, velocity
+                    )
+                    TIME = (path_length) + TIME + DROPOFF + checkpoint
+
+                    # calculate the path/time to return to the next pickup point
+                    next_index = index + 1
+                    while next_index not in block.index:
+                        if next_index &gt; block.index.max():
+                            next_index = next_index - 1
+                            break
+                        next_index = next_index + 1
+                    nextLookUpTable = self.components[
+                        self.components[&#34;index&#34;].str.match(
+                            block.loc[next_index, &#34;Code&#34;]
+                        )
+                    ]
+                    nextcart_coordinates = self.feedercarts[
+                        nextLookUpTable.FeedStyle.max()
+                    ]
+                    next_pickup_vector = (
+                        int(nextcart_coordinates[0])
+                        + (nextLookUpTable.ST_No.max() * 10),
+                        int(nextcart_coordinates[1]),
+                    )
+
+                    TIME = (
+                        (
+                            self.__calcTravelTime(
+                                next_pickup_vector, location_vector_B, velocity
+                            )
+                        )
+                        + TIME
+                        + DROPOFF
+                        + PICKUP
+                    )
+
+            elif row.Task == &#34;Fiducial&#34;:
+                path_length = self.__calcTravelTime(
+                    (0, 0), location_vector_B, velocity
+                )
+                TIME = (path_length) + TIME
+
+            else:
+                # all components get treated with single pick
+                # regardless if they can be multipicked
+                path_length = self.__calcTravelTime(
+                    location_vector_A, self.CHECKPOINT, velocity
+                )
+                checkpoint = self.__calcTravelTime(
+                    self.CHECKPOINT, location_vector_B, velocity
+                )
+                TIME = (path_length) + TIME + DROPOFF + checkpoint
+                next_index = index + 1
+                while next_index not in block.index:
+                    if next_index &gt; block.index.max():
+                        next_index = next_index - 1
+                        break
+                    next_index = next_index + 1
+                nextLookUpTable = self.components[
+                    self.components[&#34;index&#34;].str.match(
+                        block.loc[next_index, &#34;Code&#34;]
+                    )
+                ]
+                nextcart_coordinates = self.feedercarts[
+                    nextLookUpTable.FeedStyle.max()
+                ]
+                next_pickup_vector = (
+                    int(nextcart_coordinates[0])
+                    + (nextLookUpTable.ST_No.max() * 10),
+                    int(nextcart_coordinates[1]),
+                )
+                TIME = (
+                    (
+                        self.__calcTravelTime(
+                            location_vector_B, next_pickup_vector, velocity
+                        )
+                    )
+                    + TIME
+                    + DROPOFF
+                    + PICKUP
+                )
+            GLOBAL_TIME.append(TIME)
+            # saving coordinates for visual plotting
+            self.plotting_x.append(plot_coordinates[0])
+            self.plotting_y.append(plot_coordinates[1])
+
+    return {&#34;time&#34;: TIME, &#34;plot_x&#34;: self.plotting_x, &#34;plot_y&#34;: self.plotting_y}</code></pre>
+</details>
+</dd>
+<dt id="src.simulation.manufacturing.Manufacturing.coating"><code class="name flex">
+<span>def <span class="ident">coating</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>simulates the time for coating a PCB</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The calculated time.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def coating(self) -&gt; float:
+    &#34;&#34;&#34;simulates the time for coating a PCB
+
+    Returns:
+        float: The calculated time.
+    &#34;&#34;&#34;
+    velocity = 20  # mm/s
+
+    # highest coordinate on PCB
+    offset = max(self.offsets)
+    high = self.data[&#34;Y&#34;].max() + offset[1]
+    return math.sqrt(0**2 + high**2) / velocity</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="src.simulation" href="index.html">src.simulation</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="src.simulation.manufacturing.Manufacturing" href="#src.simulation.manufacturing.Manufacturing">Manufacturing</a></code></h4>
+<ul class="">
+<li><code><a title="src.simulation.manufacturing.Manufacturing.calcTime" href="#src.simulation.manufacturing.Manufacturing.calcTime">calcTime</a></code></li>
+<li><code><a title="src.simulation.manufacturing.Manufacturing.coating" href="#src.simulation.manufacturing.Manufacturing.coating">coating</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
