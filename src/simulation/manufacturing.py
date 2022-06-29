@@ -7,8 +7,10 @@ from pathlib import Path
 import concurrent.futures
 import time as tm
 from typing import Union
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
+import pickle
 
 PACKAGE_PARENT = "../"
 SCRIPT_DIR = os.path.dirname(
@@ -42,6 +44,11 @@ class Manufacturing:
         self.data: pd.DataFrame = data[0]
         self.offsets = data[2]
         self.heads = {}
+        with open(
+            Path(os.getcwd() + os.path.normpath("/data/model/misc/regressionCPH.p")),
+            "rb",
+        ) as file:
+            self.regModel = pickle.load(file)
         # add offsets in case of SMD machine
         if machine.offsets is not None:
             # offset for the PCB arrival point
@@ -100,6 +107,29 @@ class Manufacturing:
         self.plotting_y = []
         multiPick = deque()
         blocks = []
+        # calculating velocity based on component or idealState
+        velocity = 0
+        if useIdealState == False:
+            currentCPH = self.regModel.predict(
+                np.array(
+                    [
+                        [
+                            len(self.data),
+                            0 if self.machine.machineName.lower() == "m10" else 1,
+                        ]
+                    ]
+                )
+            )
+            length = self.__calcTravelTime(
+                (0, 0), (self.data["X"].max(), self.data["Y"].max()), 1
+            )
+            velocity = length / (3600 / currentCPH)
+            velocity = velocity[0]
+        else:
+            if self.machine.machineName.lower() == "m20":
+                velocity = 1345.87
+            elif self.machine.machineName.lower() == "m10":
+                velocity = 1621.4
         # dividing the placement data into blocks
         blockId = (self.data["Task"] == "Start Block").cumsum()
         for n, g in self.data.groupby(blockId):
@@ -153,16 +183,6 @@ class Manufacturing:
                         self.heads[currentHead] = tm.time()
                 else:
                     self.heads[currentHead] = tm.time()
-
-                # calculating velocity based on component or idealState
-                velocity = 0
-                if useIdealState == False:
-                    velocity = lookupTable.mean_acceleration.max()
-                else:
-                    if self.machine.machineName.lower() == "m20":
-                        velocity = 1345.87
-                    elif self.machine.machineName.lower() == "m10":
-                        velocity = 1621.4
 
                 DROPOFF = (lookupTable.Dropoff.max() / 1000) * 0.1
 
