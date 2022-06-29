@@ -118,7 +118,7 @@ class TrainModel:
         )
         # creating timestamp and run name for tensorboard
         timestamp = datetime.now().strftime("%m-%d-%Y_%H_%M_%S")
-        self.run_name = f"{self.optimizer.__class__.__name__}_{self.loss_function.__clss__.__name__}-{self.epochs}@{timestamp}"
+        self.run_name = f"{self.optimizer.__class__.__name__}_{self.loss_function.__class__.__name__}-{self.epochs}@{timestamp}"
         # creating tensorboard integrationa
         self.writer = SummaryWriter(os.getcwd() + os.path.normpath("/data/tensorboard"))
         # adding Model overview graph to tensorboard
@@ -408,6 +408,7 @@ class TrainModel:
         df["machine"] = df["machine"].cat.codes.values
         # dropping NaN values
         df = df.dropna()
+        df = df[df.timeNeeded != 0]
         # splitting data in features and labels
         x = df.drop(["timeNeeded"], axis=1)
         y = df[["timeNeeded"]]
