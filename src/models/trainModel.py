@@ -408,7 +408,6 @@ class TrainModel:
         df["machine"] = df["machine"].cat.codes.values
         # dropping NaN values
         df = df.dropna()
-        df = df[df.timeNeeded != 0]
         # splitting data in features and labels
         x = df.drop(["timeNeeded"], axis=1)
         y = df[["timeNeeded"]]
