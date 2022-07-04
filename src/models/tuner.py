@@ -70,6 +70,7 @@ class Tuner:
             self.__objective,
             n_trials=n_trials,
             catch=(RuntimeError, RuntimeWarning, TypeError),
+            callbacks=[self.logging_callback],
         )
 
         return self.study.best_trial
@@ -217,30 +218,54 @@ class Tuner:
         with open(path / f"{self.study.study_name}.p", "wb") as fp:
             pickle.dump(self.study, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
+    def loadStudy(self, path: Path):
+        with open(path, "rb") as file:
+            data = pickle.load(file)
+        return data
+
+    def logging_callback(self, study, frozen_trial):
+        previous_best_value = study.user_attrs.get("previous_best_value", None)
+        if previous_best_value != study.best_value:
+            study.set_user_attr("previous_best_value", study.best_value)
+            print(
+                "Trial {} finished with best value: {} and parameters: {}. ".format(
+                    frozen_trial.number,
+                    frozen_trial.value,
+                    frozen_trial.params,
+                )
+            )
+            self.saveBestTrial(frozen_trial.params)
+
 
 if __name__ == "__main__":
     import os
 
     DATA_PATH = Path(os.getcwd() + os.path.normpath("/data/all/trainDataTogether.csv"))
-    STUDY_PATH = Path(os.getcwd() + os.path.normpath("/data/model/studies"))
+    STUDY_PATH = Path(
+        os.getcwd()
+        + os.path.normpath("/data/model/studies/100trials_best_run_scaled.p")
+    )
 
     tuner = Tuner(DATA_PATH, epochs=1, direction="minimize")
-    best_trial = tuner.optimize(n_trials=30)
-    tuner.saveStudy(STUDY_PATH)
+    # best_trial = tuner.optimize(n_trials=30)
+    # tuner.saveStudy(STUDY_PATH)
+    study = tuner.loadStudy(STUDY_PATH)
+
     params = {
-        "n_layers": 2,
-        "epochs": 10,
-        "learning_rate": 0.011234369803867918,
-        "optimizer": "Adam",
-        "scale_data": True,
-        "loss_function": "MSELoss",
-        "activation": "ReLU",
-        "batch_size": 45,
-        "weight_decay": 0.004806115415928892,
-        "dampening": 0.14748269612902007,
-        "momentum": 0.18338038149945735,
-        "dropout": 0.35584706061342836,
-        "n_units_l0": 29,
-        "n_units_l1": 33,
+        "n_layers": 3,
+        "epochs": 16,
+        "learning_rate": 0.7434006168571946,
+        "optimizer": "SGD",
+        "scale_data": False,
+        "loss_function": "FocalTverskyLoss",
+        "activation": "Sigmoid",
+        "batch_size": 65,
+        "weight_decay": 0.0005956932633897406,
+        "dampening": 0.3843686739271834,
+        "momentum": 0.23561441787283885,
+        "dropout": 0.2528221226995387,
+        "n_units_l0": 36,
+        "n_units_l1": 63,
+        "n_units_l2": 60,
     }
-    tuner.tuneModel(best_trial.params, None, True)
+    tuner.tuneModel(params, None, True)
