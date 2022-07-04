@@ -1,4 +1,5 @@
 from pathlib import Path
+from os.path import exists
 from typing import Any, Literal, Union
 import numpy as np
 
@@ -217,7 +218,8 @@ class Tuner:
             params (optuna.trial.FrozenTrial): The best trial as determined by optuna
             path (Path, optional): Path to saving location. Defaults to PATH.
         """
-
+        if not exists(path / "updatedModel"):
+            os.mkdir(path / "updatedModel")
         with open(path / "updatedModel" / "modelParameters.p", "wb") as fp:
             pickle.dump(params, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
