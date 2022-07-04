@@ -251,14 +251,15 @@ if __name__ == "__main__":
 
     DATA_PATH = Path(os.getcwd() + os.path.normpath("/data/all/trainDataTogether.csv"))
     STUDY_PATH = Path(
-        os.getcwd()
-        + os.path.normpath("/data/model/studies/100trials_best_run_scaled.p")
+        os.getcwd() + os.path.normpath("/data/model/studies/modelParameters.p")
     )
 
-    tuner = Tuner(DATA_PATH, epochs=1, direction="minimize")
-    best_trial = tuner.optimize(n_trials=30)
+    tuner = Tuner(
+        DATA_PATH, epochs=1, direction="minimize", sampler=optuna.samplers.CmaEsSampler
+    )
+    best_trial = tuner.optimize(n_trials=90)
     # tuner.saveStudy(STUDY_PATH)
-    # study = tuner.loadStudy(STUDY_PATH)
+    study = tuner.loadStudy(STUDY_PATH)
 
     params = {
         "n_layers": 3,
