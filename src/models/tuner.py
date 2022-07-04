@@ -218,7 +218,7 @@ class Tuner:
             path (Path, optional): Path to saving location. Defaults to PATH.
         """
 
-        with open(path / self.trainModel.run_name / "modelParameters.p", "wb") as fp:
+        with open(path / "updatedModel" / "modelParameters.p", "wb") as fp:
             pickle.dump(params, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
     def saveStudy(self, path: Path):
