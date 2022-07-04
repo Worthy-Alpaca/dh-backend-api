@@ -198,8 +198,6 @@ class TrainModel:
             # adding batch loss to collection
             total_loss_train += batch_loss.item()
             # calculating the batch accuracy
-            # acc = (output.argmax(dim=1) == train_target).sum().float().item()
-            # acc = acc / train_target.size(0)
             acc = mean_absolute_error(output, train_target)
             # adding batch accuracy to collection
             total_acc_train += acc
@@ -440,7 +438,7 @@ if __name__ == "__main__":
     model = Network(4, 1, 3, [16, 32, 16])
 
     trainModel = TrainModel(DATA_PATH, model)
-    trainLoader, testLoader = trainModel.prepareData(scale_data=False)
+    trainLoader, testLoader = trainModel.prepareData(scale_data=True)
     trainModel.fit(2, trainLoader, testLoader, show_summary=True)
     # data = np.array([308, 1, 306, 500])
     data = np.array([168, 0, 225.6, 128.0])
