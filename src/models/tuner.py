@@ -88,27 +88,30 @@ class Tuner:
             float: The current objective. Either accuracy or loss
         """
         params = {
-            "n_layers": trial.suggest_int("n_layers", 1, 5),
+            "n_layers": trial.suggest_int("n_layers", 3, 3),
             "epochs": trial.suggest_int("epochs", 1, 25),
             "n_units_layers": [],
             "learning_rate": trial.suggest_loguniform("learning_rate", 1e-6, 9e-1),
             "optimizer": trial.suggest_categorical(
-                "optimizer", ["SGD", "ASGD", "Adam", "Adamax"]
+                "optimizer",
+                [
+                    "SGD",
+                ],  # "ASGD", "Adam", "Adamax"]
             ),
             "scale_data": trial.suggest_categorical("scale_data", [True]),
             "loss_function": trial.suggest_categorical(
                 "loss_function",
                 [
                     "FocalTverskyLoss",
-                    "TverskyLoss",
-                    "L1Loss",
-                    "MSELoss",
+                    # "TverskyLoss",
+                    # "L1Loss",
+                    # "MSELoss",
                 ],
             ),
             "activation": trial.suggest_categorical(
-                "activation", ["ReLU", "Sigmoid", "ELU"]
+                "activation", ["Sigmoid"]  # ["ReLU", "Sigmoid", "ELU"]
             ),
-            "batch_size": trial.suggest_int("batch_size", 50, 70),
+            "batch_size": trial.suggest_int("batch_size", 65, 65),
             "weight_decay": trial.suggest_loguniform("weight_decay", 9e-5, 9e-2),
             "dampening": trial.suggest_loguniform("dampening", 1e-1, 7e-1),
             "momentum": trial.suggest_loguniform("momentum", 1e-1, 7e-1),
@@ -172,7 +175,11 @@ class Tuner:
         except:
             params["loss_function"] = getattr(losses, params["loss_function"])
 
-        optim_args = {"weight_decay": params["weight_decay"]}
+        optim_args = {
+            "weight_decay": params["weight_decay"],
+            "momentum": params["momentum"],
+            "dampening": params["momentum"],
+        }
 
         try:
             train, test = self.trainModel.fit(
@@ -247,16 +254,16 @@ if __name__ == "__main__":
     )
 
     tuner = Tuner(DATA_PATH, epochs=1, direction="minimize")
-    # best_trial = tuner.optimize(n_trials=30)
+    best_trial = tuner.optimize(n_trials=30)
     # tuner.saveStudy(STUDY_PATH)
-    study = tuner.loadStudy(STUDY_PATH)
+    # study = tuner.loadStudy(STUDY_PATH)
 
     params = {
         "n_layers": 3,
         "epochs": 16,
         "learning_rate": 0.7434006168571946,
         "optimizer": "SGD",
-        "scale_data": False,
+        "scale_data": True,
         "loss_function": "FocalTverskyLoss",
         "activation": "Sigmoid",
         "batch_size": 65,
@@ -268,4 +275,4 @@ if __name__ == "__main__":
         "n_units_l1": 63,
         "n_units_l2": 60,
     }
-    tuner.tuneModel(params, None, True)
+    tuner.tuneModel(best_trial.params, None, True)
