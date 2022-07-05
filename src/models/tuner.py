@@ -89,8 +89,8 @@ class Tuner:
             float: The current objective. Either accuracy or loss
         """
         params = {
-            "n_layers": trial.suggest_int("n_layers", 3, 3),
-            "epochs": trial.suggest_int("epochs", 1, 25),
+            "n_layers": trial.suggest_int("n_layers", 1, 5),
+            "epochs": trial.suggest_int("epochs", 10, 10),
             "n_units_layers": [],
             "learning_rate": trial.suggest_loguniform("learning_rate", 1e-6, 9e-1),
             "optimizer": trial.suggest_categorical(
@@ -106,7 +106,8 @@ class Tuner:
                     "FocalTverskyLoss",
                     # "TverskyLoss",
                     # "L1Loss",
-                    # "MSELoss",
+                    "MSELoss",
+                    "HuberLoss",
                 ],
             ),
             "activation": trial.suggest_categorical(
@@ -224,7 +225,7 @@ class Tuner:
             pickle.dump(params, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
     def saveStudy(self, path: Path):
-        with open(path / f"{self.study.study_name}.p", "wb") as fp:
+        with open(path / f"{self.study.study_name}", "wb") as fp:
             pickle.dump(self.study, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
     def loadStudy(self, path: Path):
@@ -254,12 +255,10 @@ if __name__ == "__main__":
         os.getcwd() + os.path.normpath("/data/model/studies/modelParameters.p")
     )
 
-    tuner = Tuner(
-        DATA_PATH, epochs=1, direction="minimize", sampler=optuna.samplers.CmaEsSampler
-    )
-    best_trial = tuner.optimize(n_trials=90)
-    # tuner.saveStudy(STUDY_PATH)
-    study = tuner.loadStudy(STUDY_PATH)
+    tuner = Tuner(DATA_PATH, epochs=1, direction="minimize")
+    best_trial = tuner.optimize(n_trials=30)
+    tuner.saveStudy(STUDY_PATH)
+    # study = tuner.loadStudy(STUDY_PATH)
 
     params = {
         "n_layers": 3,
