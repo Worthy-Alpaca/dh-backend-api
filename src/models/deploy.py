@@ -35,11 +35,12 @@ class DeployModel:
     def predict(self, data: np.ndarray) -> np.ndarray:
         data = data.reshape(1, -1)
 
+        # if self.model.scale_data:
         data = self.scaleX.transform(data)
         data = torch.from_numpy(data)
         prediction = self.model(data.float())
         prediction = prediction.cpu().detach().numpy()
-
+        # if self.model.scale_data:
         prediction = self.scaleY.inverse_transform(prediction)
 
         return prediction
@@ -55,10 +56,14 @@ if __name__ == "__main__":
         with open("output", "w") as f:
             f.write("running in the background!\n")
     path = Path(
-        r"C:\Users\stephan.schumacher\Documents\repos\dh-backend-api\data\models\Adam_MSELoss-1@06-24-2022_08_41_24"
+        ""
+        r"C:\Users\stephan.schumacher\Documents\repos\dh-backend-api\data\models\SGD_MSELoss-13@06-24-2022_11_41_36"
     )
     model = DeployModel(path)
 
     data = np.array([168, 0, 225.6, 128.0])
+    pred = model.predict(data)
+    print(pred)
+    data = np.array([1, 0, 15, 19])
     pred = model.predict(data)
     print(pred)
