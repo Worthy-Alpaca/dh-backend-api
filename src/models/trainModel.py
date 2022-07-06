@@ -444,6 +444,6 @@ if __name__ == "__main__":
     data = np.array([168, 0, 225.6, 128.0])
     pred = trainModel.predict(data)
     print(pred)
-    data = np.array([168, 1, 225.6, 128.0])
+    data = np.array([600, 1, 225.6, 128.0])
     pred = trainModel.predict(data)
     print(pred)
