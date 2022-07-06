@@ -7,6 +7,7 @@ from pathlib import Path
 import concurrent.futures
 import time as tm
 from typing import Union
+from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -66,6 +67,20 @@ class Manufacturing:
             for machine in machine.offsets["feedercarts"]:
                 for key in machine:
                     self.feedercarts[key] = machine[key]
+
+    def getPlots(self):
+        plot_x = []
+        plot_y = []
+        x = self.data["X"].to_numpy()
+        y = self.data["Y"].to_numpy()
+        for offset in self.offsets:
+            plot_x.append((x + offset[0]).tolist())
+            plot_y.append((y + offset[1]).tolist())
+
+        plot_x, plot_y = list(itertools.chain.from_iterable(plot_x)), list(
+            itertools.chain.from_iterable(plot_y)
+        )
+        return plot_x, plot_y
 
     def __calcTravelTime(
         self, vectorA: tuple, vectorB: tuple, velocity: float
@@ -138,7 +153,7 @@ class Manufacturing:
         # Loop over all blocks in the placementdata
         for block in blocks:
             # calculate the
-            for index, row in tqdm(block.iterrows()):
+            for index, row in block.iterrows():
                 # check for NaN values and continue if found
                 if isNan(row.Code):
                     continue
