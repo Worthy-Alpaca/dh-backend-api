@@ -6,6 +6,7 @@ from os.path import exists
 from pathlib import Path
 
 from fastapi import FastAPI, Response, status, Request
+import numpy as np
 import uvicorn
 
 PACKAGE_PARENT = "../"
@@ -21,6 +22,7 @@ try:
     from simulation.cartsetup import CartSetup
     from simulation.machine import Machine
     from simulation.manufacturing import Manufacturing
+    from models.deploy import DeployModel
     from schemas import DummyMachine
 except:
     from src.data.dataloader import DataLoader
@@ -29,6 +31,7 @@ except:
     from src.simulation.cartsetup import CartSetup
     from src.simulation.machine import Machine
     from src.simulation.manufacturing import Manufacturing
+    from src.models.deploy import DeployModel
     from src.schemas import DummyMachine
 
 app = FastAPI()
@@ -92,6 +95,44 @@ def startSimulation(
         body = {"error": e}
         return body
     return simulationData
+
+
+@app.put(config.get("network", "basepath") + "/simulate/AI/")
+def startSimulation(
+    productId: str, useIdealState: bool, dummyMachine: DummyMachine, response: Response
+):
+    """endpoint to calculate the manufacturing time for a given product"""
+    # replace this with Database lookup
+    path = Path(
+        os.getcwd()
+        + os.path.normpath("/data/programms/" + productId + "/" + dummyMachine.machine)
+    )
+    data = DataLoader(path)
+    machine = Machine(dummyMachine)
+    try:
+        data = data()
+        offsets = max(data[2])
+        manufacturing = Manufacturing(data, machine)
+        plot_x, plot_y = manufacturing.getPlots()
+        model = DeployModel(
+            Path(
+                r"C:\Users\stephan.schumacher\Documents\repos\dh-backend-api\data\models\SGD_MSELoss-10@07-04-2022_14_59_11"
+            )
+        )
+        predArray = np.array(
+            [
+                len(data[0]),
+                0 if machine.machineName == "m10" else 1,
+                data[0]["X"].max() + offsets[0],
+                data[0]["Y"].max() + offsets[1],
+            ]
+        )
+        predictedData = model.predict(predArray)[0][0] - 1000
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        body = {"error": e}
+        return body
+    return {"time": predictedData, "plot_x": plot_x, "plot_y": plot_y}
 
 
 @app.get(config.get("network", "basepath") + "/simulate/setup/")
