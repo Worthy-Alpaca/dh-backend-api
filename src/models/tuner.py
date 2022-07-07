@@ -225,7 +225,10 @@ class Tuner:
             pickle.dump(params, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
     def saveStudy(self, path: Path):
-        with open(path / f"{self.study.study_name}", "wb") as fp:
+        if not exists(path):
+            os.mkdir(path)
+        with open(path / f"{self.study.study_name}.p", "wb") as fp:
+            print(f"Saving Study with Name: {self.study.study_name}")
             pickle.dump(self.study, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
     def loadStudy(self, path: Path):
@@ -252,29 +255,36 @@ if __name__ == "__main__":
 
     DATA_PATH = Path(os.getcwd() + os.path.normpath("/data/all/trainDataTogether.csv"))
     STUDY_PATH = Path(
-        os.getcwd() + os.path.normpath("/data/model/studies/modelParameters.p")
+        os.getcwd() + os.path.normpath("/data/model/studies/modelParameters")
+    )
+    STUDY_LOAD = Path(
+        os.getcwd()
+        + os.path.normpath(
+            r"\data\model\studies\modelParameters\no-name-a1265619-01d9-4bde-a16c-0f45e15de97d"
+        )
     )
 
     tuner = Tuner(DATA_PATH, epochs=1, direction="minimize")
-    best_trial = tuner.optimize(n_trials=30)
+    # best_trial = tuner.optimize(n_trials=30)
     tuner.saveStudy(STUDY_PATH)
-    # study = tuner.loadStudy(STUDY_PATH)
+    # study = tuner.loadStudy(STUDY_LOAD)
 
     params = {
-        "n_layers": 3,
-        "epochs": 16,
-        "learning_rate": 0.7434006168571946,
+        "n_layers": 4,
+        "epochs": 20,
+        "learning_rate": 0.0012550976546729362,
         "optimizer": "SGD",
         "scale_data": True,
-        "loss_function": "FocalTverskyLoss",
+        "loss_function": "MSELoss",
         "activation": "Sigmoid",
         "batch_size": 65,
-        "weight_decay": 0.0005956932633897406,
-        "dampening": 0.3843686739271834,
-        "momentum": 0.23561441787283885,
-        "dropout": 0.2528221226995387,
-        "n_units_l0": 36,
-        "n_units_l1": 63,
-        "n_units_l2": 60,
+        "weight_decay": 0.010525380098615311,
+        "dampening": 0.18889737913776164,
+        "momentum": 0.5965836335816069,
+        "dropout": 0.4074505062556687,
+        "n_units_l0": 21,
+        "n_units_l1": 55,
+        "n_units_l2": 6,
+        "n_units_l3": 52,
     }
-    tuner.tuneModel(best_trial.params, None, True)
+    tuner.tuneModel(params, None, True)
