@@ -41,13 +41,14 @@ if exists(configPath):
     config.read(configPath)
 else:
     config.add_section("default")
+    config.set("default", "version", "1.0")
     config.add_section("network")
     config.set("network", "port", "5000")
     config.set("network", "host", "127.0.0.1")
-    config.set("network", "basepath", "/api/v1/")
+    config.set("network", "basepath", "/api/v7/")
 
 
-@app.put(config.get("network", "basepath") + "/")
+@app.get("/")
 def root(response: Response, request: Request):
     """endpoint to check base status of API"""
     response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -57,6 +58,7 @@ def root(response: Response, request: Request):
         "API Version": config.get("default", "version"),
         "Status": response.status_code,
         "Headers": request.headers,
+        "Basepath": config.get("network", "basepath"),
     }
     return body
 
@@ -116,7 +118,8 @@ def startSimulation(
         plot_x, plot_y = manufacturing.getPlots()
         model = DeployModel(
             Path(
-                r"C:\Users\stephan.schumacher\Documents\repos\dh-backend-api\data\models\SGD_MSELoss-10@07-04-2022_14_59_11"
+                os.getcwd()
+                + os.path.normpath("/data/models/SGD_HuberLoss-10@07-06-2022_09_40_15")
             )
         )
         predArray = np.array(
