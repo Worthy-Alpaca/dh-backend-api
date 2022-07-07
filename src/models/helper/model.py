@@ -247,8 +247,8 @@ class Network(nn.Module):
         for i in range(n_layers):
             layers.append(activation1)
             running_layer = nn.Linear(running_features, n_units_layers[i])
-            torch.nn.init.orthogonal_(
-                running_layer.weight, gain=nn.init.calculate_gain("tanh", 0.2)
+            torch.nn.init.xavier_normal_(
+                running_layer.weight,  # gain=nn.init.calculate_gain("tanh", 0.2)
             )
             torch.nn.init.zeros_(running_layer.bias)
             layers.append(running_layer)
