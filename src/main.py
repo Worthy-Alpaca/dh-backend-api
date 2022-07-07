@@ -130,12 +130,12 @@ def startSimulation(
                 data[0]["Y"].max() + offsets[1],
             ]
         )
-        predictedData = model.predict(predArray)[0][0] - 1000
+        predictedData = model.predict(predArray)[0][0]
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         body = {"error": e}
         return body
-    return {"time": predictedData, "plot_x": plot_x, "plot_y": plot_y}
+    return {"time": float(predictedData), "plot_x": plot_x, "plot_y": plot_y}
 
 
 @app.get(config.get("network", "basepath") + "/simulate/setup/")
