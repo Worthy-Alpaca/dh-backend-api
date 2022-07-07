@@ -70,7 +70,7 @@ class Tuner:
         self.study.optimize(
             self.__objective,
             n_trials=n_trials,
-            catch=(RuntimeError, RuntimeWarning, TypeError),
+            catch=(RuntimeError, RuntimeWarning, TypeError, ValueError),
             callbacks=[self.logging_callback],
         )
 
@@ -95,9 +95,7 @@ class Tuner:
             "learning_rate": trial.suggest_loguniform("learning_rate", 1e-6, 9e-1),
             "optimizer": trial.suggest_categorical(
                 "optimizer",
-                [
-                    "SGD",
-                ],  # "ASGD", "Adam", "Adamax"]
+                ["Adamax"],  # "ASGD", "Adam", "Adamax"]
             ),
             "scale_data": trial.suggest_categorical("scale_data", [True]),
             "loss_function": trial.suggest_categorical(
@@ -111,9 +109,9 @@ class Tuner:
                 ],
             ),
             "activation": trial.suggest_categorical(
-                "activation", ["Sigmoid"]  # ["ReLU", "Sigmoid", "ELU"]
+                "activation", ["Sigmoid", "GELU"]  # ["ReLU", "Sigmoid", "ELU"]
             ),
-            "batch_size": trial.suggest_int("batch_size", 65, 65),
+            "batch_size": trial.suggest_int("batch_size", 50, 70),
             "weight_decay": trial.suggest_loguniform("weight_decay", 9e-5, 9e-2),
             "dampening": trial.suggest_loguniform("dampening", 1e-1, 7e-1),
             "momentum": trial.suggest_loguniform("momentum", 1e-1, 7e-1),
@@ -179,8 +177,8 @@ class Tuner:
 
         optim_args = {
             "weight_decay": params["weight_decay"],
-            "momentum": params["momentum"],
-            "dampening": params["momentum"],
+            "eps": params["momentum"],
+            # "dampening": params["momentum"],
         }
 
         try:
@@ -219,9 +217,9 @@ class Tuner:
             params (optuna.trial.FrozenTrial): The best trial as determined by optuna
             path (Path, optional): Path to saving location. Defaults to PATH.
         """
-        if not exists(path / "updatedModel"):
-            os.mkdir(path / "updatedModel")
-        with open(path / "updatedModel" / "modelParameters.p", "wb") as fp:
+        if not exists(path / "updatedModelUnscaled"):
+            os.mkdir(path / "updatedModelUnscaled")
+        with open(path / "updatedModelUnscaled" / "modelParameters.p", "wb") as fp:
             pickle.dump(params, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
     def saveStudy(self, path: Path):
@@ -255,7 +253,7 @@ if __name__ == "__main__":
 
     DATA_PATH = Path(os.getcwd() + os.path.normpath("/data/all/trainDataTogether.csv"))
     STUDY_PATH = Path(
-        os.getcwd() + os.path.normpath("/data/model/studies/modelParameters")
+        os.getcwd() + os.path.normpath("/data/model/studies/50TrialsScaled")
     )
     STUDY_LOAD = Path(
         os.getcwd()
@@ -265,26 +263,25 @@ if __name__ == "__main__":
     )
 
     tuner = Tuner(DATA_PATH, epochs=1, direction="minimize")
-    # best_trial = tuner.optimize(n_trials=30)
+    best_trial = tuner.optimize(n_trials=50)
     tuner.saveStudy(STUDY_PATH)
     # study = tuner.loadStudy(STUDY_LOAD)
 
     params = {
-        "n_layers": 4,
-        "epochs": 20,
-        "learning_rate": 0.0012550976546729362,
-        "optimizer": "SGD",
+        "n_layers": 3,
+        "epochs": 2,
+        "learning_rate": 0.2505950956626377,
+        "optimizer": "Adamax",
         "scale_data": True,
         "loss_function": "MSELoss",
-        "activation": "Sigmoid",
+        "activation": "GELU",
         "batch_size": 65,
-        "weight_decay": 0.010525380098615311,
-        "dampening": 0.18889737913776164,
-        "momentum": 0.5965836335816069,
-        "dropout": 0.4074505062556687,
-        "n_units_l0": 21,
-        "n_units_l1": 55,
-        "n_units_l2": 6,
-        "n_units_l3": 52,
+        "weight_decay": 0.00035351893312748976,
+        "dampening": 0.1721094552252759,
+        "momentum": 0.21608929927906143,
+        "dropout": 0.2535510202298927,
+        "n_units_l0": 27,
+        "n_units_l1": 20,
+        "n_units_l2": 14,
     }
-    tuner.tuneModel(params, None, True)
+    # tuner.tuneModel(params, None, True)

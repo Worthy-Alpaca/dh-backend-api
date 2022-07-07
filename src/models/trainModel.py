@@ -120,7 +120,9 @@ class TrainModel:
         timestamp = datetime.now().strftime("%m-%d-%Y_%H_%M_%S")
         self.run_name = f"{self.optimizer.__class__.__name__}_{self.loss_function.__class__.__name__}-{self.epochs}@{timestamp}"
         # creating tensorboard integrationa
-        self.writer = SummaryWriter(os.getcwd() + os.path.normpath("/data/tensorboard"))
+        self.writer = SummaryWriter(
+            os.getcwd() + os.path.normpath(f"/data/tensorboard/{self.run_name}")
+        )
         # adding Model overview graph to tensorboard
         data, labels = next(iter(trainLoader))
         self.writer.add_graph(self.model, data.to(self.device))
@@ -441,7 +443,7 @@ if __name__ == "__main__":
     trainLoader, testLoader = trainModel.prepareData(scale_data=True)
     trainModel.fit(2, trainLoader, testLoader, show_summary=True)
     # data = np.array([308, 1, 306, 500])
-    data = np.array([168, 0, 225.6, 128.0])
+    data = np.array([4, 0, 255, 224.678])
     pred = trainModel.predict(data)
     print(pred)
     data = np.array([600, 1, 225.6, 128.0])
