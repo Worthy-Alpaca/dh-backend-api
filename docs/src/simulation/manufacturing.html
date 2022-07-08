@@ -35,6 +35,7 @@ from pathlib import Path
 import concurrent.futures
 import time as tm
 from typing import Union
+from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -94,6 +95,20 @@ class Manufacturing:
             for machine in machine.offsets[&#34;feedercarts&#34;]:
                 for key in machine:
                     self.feedercarts[key] = machine[key]
+
+    def getPlots(self):
+        plot_x = []
+        plot_y = []
+        x = self.data[&#34;X&#34;].to_numpy()
+        y = self.data[&#34;Y&#34;].to_numpy()
+        for offset in self.offsets:
+            plot_x.append((x + offset[0]).tolist())
+            plot_y.append((y + offset[1]).tolist())
+
+        plot_x, plot_y = list(itertools.chain.from_iterable(plot_x)), list(
+            itertools.chain.from_iterable(plot_y)
+        )
+        return plot_x, plot_y
 
     def __calcTravelTime(
         self, vectorA: tuple, vectorB: tuple, velocity: float
@@ -166,7 +181,7 @@ class Manufacturing:
         # Loop over all blocks in the placementdata
         for block in blocks:
             # calculate the
-            for index, row in tqdm(block.iterrows()):
+            for index, row in block.iterrows():
                 # check for NaN values and continue if found
                 if isNan(row.Code):
                     continue
@@ -537,6 +552,20 @@ if __name__ == &#34;__main__&#34;:
                 for key in machine:
                     self.feedercarts[key] = machine[key]
 
+    def getPlots(self):
+        plot_x = []
+        plot_y = []
+        x = self.data[&#34;X&#34;].to_numpy()
+        y = self.data[&#34;Y&#34;].to_numpy()
+        for offset in self.offsets:
+            plot_x.append((x + offset[0]).tolist())
+            plot_y.append((y + offset[1]).tolist())
+
+        plot_x, plot_y = list(itertools.chain.from_iterable(plot_x)), list(
+            itertools.chain.from_iterable(plot_y)
+        )
+        return plot_x, plot_y
+
     def __calcTravelTime(
         self, vectorA: tuple, vectorB: tuple, velocity: float
     ) -&gt; float:
@@ -608,7 +637,7 @@ if __name__ == &#34;__main__&#34;:
         # Loop over all blocks in the placementdata
         for block in blocks:
             # calculate the
-            for index, row in tqdm(block.iterrows()):
+            for index, row in block.iterrows():
                 # check for NaN values and continue if found
                 if isNan(row.Code):
                     continue
@@ -969,7 +998,7 @@ if __name__ == &#34;__main__&#34;:
     # Loop over all blocks in the placementdata
     for block in blocks:
         # calculate the
-        for index, row in tqdm(block.iterrows()):
+        for index, row in block.iterrows():
             # check for NaN values and continue if found
             if isNan(row.Code):
                 continue
@@ -1241,6 +1270,30 @@ if __name__ == &#34;__main__&#34;:
     return math.sqrt(0**2 + high**2) / velocity</code></pre>
 </details>
 </dd>
+<dt id="src.simulation.manufacturing.Manufacturing.getPlots"><code class="name flex">
+<span>def <span class="ident">getPlots</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getPlots(self):
+    plot_x = []
+    plot_y = []
+    x = self.data[&#34;X&#34;].to_numpy()
+    y = self.data[&#34;Y&#34;].to_numpy()
+    for offset in self.offsets:
+        plot_x.append((x + offset[0]).tolist())
+        plot_y.append((y + offset[1]).tolist())
+
+    plot_x, plot_y = list(itertools.chain.from_iterable(plot_x)), list(
+        itertools.chain.from_iterable(plot_y)
+    )
+    return plot_x, plot_y</code></pre>
+</details>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -1264,6 +1317,7 @@ if __name__ == &#34;__main__&#34;:
 <ul class="">
 <li><code><a title="src.simulation.manufacturing.Manufacturing.calcTime" href="#src.simulation.manufacturing.Manufacturing.calcTime">calcTime</a></code></li>
 <li><code><a title="src.simulation.manufacturing.Manufacturing.coating" href="#src.simulation.manufacturing.Manufacturing.coating">coating</a></code></li>
+<li><code><a title="src.simulation.manufacturing.Manufacturing.getPlots" href="#src.simulation.manufacturing.Manufacturing.getPlots">getPlots</a></code></li>
 </ul>
 </li>
 </ul>

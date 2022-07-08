@@ -56,40 +56,34 @@ class DeployModel:
         try:
             self.scaleX: MinMaxScaler = joblib.load(path / &#34;scaleStateX.gz&#34;)
             self.scaleY: MinMaxScaler = joblib.load(path / &#34;scaleStateY.gz&#34;)
-            self.model: torch.nn.Module = torch.jit.load(path / &#34;modelState.pt&#34;)
+            self.model: torch.nn.Module = torch.jit.load(path / &#34;modelState.pt&#34;).to(
+                &#34;cpu&#34;
+            )
         except Exception as e:
             raise DeplotmentException(f&#34;The Loading of the Model failed. {e}&#34;)
 
     def predict(self, data: np.ndarray) -&gt; np.ndarray:
-        data = data.reshape(1, -1)
+        &#34;&#34;&#34;Method to predict with the loaded Neural Network.
 
-        data = self.scaleX.transform(data)
+        Args:
+            data (np.ndarray): The Data needed for the prediction.
+
+        Returns:
+            np.ndarray: The predicted value(s).
+        &#34;&#34;&#34;
+        data = data.reshape(1, -1)
+        try:
+            data = self.scaleX.transform(data)
+        except:
+            pass
         data = torch.from_numpy(data)
         prediction = self.model(data.float())
         prediction = prediction.cpu().detach().numpy()
-
-        prediction = self.scaleY.inverse_transform(prediction)
-
-        return prediction
-
-
-if __name__ == &#34;__main__&#34;:
-    import sys
-
-    if sys.stdin and sys.stdin.isatty():
-        # running interactively
-        print(&#34;running interactively&#34;)
-    else:
-        with open(&#34;output&#34;, &#34;w&#34;) as f:
-            f.write(&#34;running in the background!\n&#34;)
-    path = Path(
-        r&#34;C:\Users\stephan.schumacher\Documents\repos\dh-backend-api\data\models\Adam_MSELoss-1@06-24-2022_08_41_24&#34;
-    )
-    model = DeployModel(path)
-
-    data = np.array([168, 0, 225.6, 128.0])
-    pred = model.predict(data)
-    print(pred)</code></pre>
+        try:
+            prediction = self.scaleY.inverse_transform(prediction)
+        except:
+            pass
+        return prediction</code></pre>
 </details>
 </section>
 <section>
@@ -160,20 +154,33 @@ if __name__ == &#34;__main__&#34;:
         try:
             self.scaleX: MinMaxScaler = joblib.load(path / &#34;scaleStateX.gz&#34;)
             self.scaleY: MinMaxScaler = joblib.load(path / &#34;scaleStateY.gz&#34;)
-            self.model: torch.nn.Module = torch.jit.load(path / &#34;modelState.pt&#34;)
+            self.model: torch.nn.Module = torch.jit.load(path / &#34;modelState.pt&#34;).to(
+                &#34;cpu&#34;
+            )
         except Exception as e:
             raise DeplotmentException(f&#34;The Loading of the Model failed. {e}&#34;)
 
     def predict(self, data: np.ndarray) -&gt; np.ndarray:
-        data = data.reshape(1, -1)
+        &#34;&#34;&#34;Method to predict with the loaded Neural Network.
 
-        data = self.scaleX.transform(data)
+        Args:
+            data (np.ndarray): The Data needed for the prediction.
+
+        Returns:
+            np.ndarray: The predicted value(s).
+        &#34;&#34;&#34;
+        data = data.reshape(1, -1)
+        try:
+            data = self.scaleX.transform(data)
+        except:
+            pass
         data = torch.from_numpy(data)
         prediction = self.model(data.float())
         prediction = prediction.cpu().detach().numpy()
-
-        prediction = self.scaleY.inverse_transform(prediction)
-
+        try:
+            prediction = self.scaleY.inverse_transform(prediction)
+        except:
+            pass
         return prediction</code></pre>
 </details>
 <h3>Methods</h3>
@@ -182,21 +189,42 @@ if __name__ == &#34;__main__&#34;:
 <span>def <span class="ident">predict</span></span>(<span>self, data: numpy.ndarray) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Method to predict with the loaded Neural Network.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>The Data needed for the prediction.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>np.ndarray</code></dt>
+<dd>The predicted value(s).</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def predict(self, data: np.ndarray) -&gt; np.ndarray:
-    data = data.reshape(1, -1)
+    &#34;&#34;&#34;Method to predict with the loaded Neural Network.
 
-    data = self.scaleX.transform(data)
+    Args:
+        data (np.ndarray): The Data needed for the prediction.
+
+    Returns:
+        np.ndarray: The predicted value(s).
+    &#34;&#34;&#34;
+    data = data.reshape(1, -1)
+    try:
+        data = self.scaleX.transform(data)
+    except:
+        pass
     data = torch.from_numpy(data)
     prediction = self.model(data.float())
     prediction = prediction.cpu().detach().numpy()
-
-    prediction = self.scaleY.inverse_transform(prediction)
-
+    try:
+        prediction = self.scaleY.inverse_transform(prediction)
+    except:
+        pass
     return prediction</code></pre>
 </details>
 </dd>

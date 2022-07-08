@@ -192,7 +192,7 @@ class DataLoader:
                 return 3
 
         # data[&#34;Task&#34;] = data[&#34;Task&#34;].apply(lambda x: encode(x))
-
+        data = data.dropna()
         self.data = data
         self.components = components
         self.offsets = offsetlist
@@ -396,7 +396,7 @@ if __name__ == &#34;__main__&#34;:
                 return 3
 
         # data[&#34;Task&#34;] = data[&#34;Task&#34;].apply(lambda x: encode(x))
-
+        data = data.dropna()
         self.data = data
         self.components = components
         self.offsets = offsetlist

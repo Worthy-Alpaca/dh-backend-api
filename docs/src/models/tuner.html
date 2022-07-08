@@ -27,6 +27,7 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">from pathlib import Path
+from os.path import exists
 from typing import Any, Literal, Union
 import numpy as np
 
@@ -76,7 +77,10 @@ class Tuner:
         self.direction = direction
         # create study
         self.study = optuna.create_study(
-            direction=direction, sampler=sampler(), pruner=pruner()
+            direction=direction,
+            sampler=sampler(),
+            pruner=pruner(),
+            storage=&#34;sqlite:///50Studies_new.db&#34;,
         )
 
     def optimize(
@@ -97,7 +101,8 @@ class Tuner:
         self.study.optimize(
             self.__objective,
             n_trials=n_trials,
-            catch=(RuntimeError, RuntimeWarning, TypeError),
+            catch=(RuntimeError, RuntimeWarning, TypeError, ValueError),
+            callbacks=[self.logging_callback],
         )
 
         return self.study.best_trial
@@ -116,24 +121,25 @@ class Tuner:
         &#34;&#34;&#34;
         params = {
             &#34;n_layers&#34;: trial.suggest_int(&#34;n_layers&#34;, 1, 5),
-            &#34;epochs&#34;: trial.suggest_int(&#34;epochs&#34;, 1, 25),
             &#34;n_units_layers&#34;: [],
             &#34;learning_rate&#34;: trial.suggest_loguniform(&#34;learning_rate&#34;, 1e-6, 9e-1),
             &#34;optimizer&#34;: trial.suggest_categorical(
-                &#34;optimizer&#34;, [&#34;SGD&#34;, &#34;ASGD&#34;, &#34;Adam&#34;, &#34;Adamax&#34;]
+                &#34;optimizer&#34;,
+                [&#34;Adamax&#34;],  # &#34;ASGD&#34;, &#34;Adam&#34;, &#34;Adamax&#34;]
             ),
             &#34;scale_data&#34;: trial.suggest_categorical(&#34;scale_data&#34;, [True]),
             &#34;loss_function&#34;: trial.suggest_categorical(
                 &#34;loss_function&#34;,
                 [
                     &#34;FocalTverskyLoss&#34;,
-                    &#34;TverskyLoss&#34;,
-                    &#34;L1Loss&#34;,
+                    # &#34;TverskyLoss&#34;,
+                    # &#34;L1Loss&#34;,
                     &#34;MSELoss&#34;,
+                    &#34;HuberLoss&#34;,
                 ],
             ),
             &#34;activation&#34;: trial.suggest_categorical(
-                &#34;activation&#34;, [&#34;ReLU&#34;, &#34;Sigmoid&#34;, &#34;ELU&#34;]
+                &#34;activation&#34;, [&#34;Sigmoid&#34;, &#34;GELU&#34;]  # [&#34;ReLU&#34;, &#34;Sigmoid&#34;, &#34;ELU&#34;]
             ),
             &#34;batch_size&#34;: trial.suggest_int(&#34;batch_size&#34;, 50, 70),
             &#34;weight_decay&#34;: trial.suggest_loguniform(&#34;weight_decay&#34;, 9e-5, 9e-2),
@@ -199,11 +205,15 @@ class Tuner:
         except:
             params[&#34;loss_function&#34;] = getattr(losses, params[&#34;loss_function&#34;])
 
-        optim_args = {&#34;weight_decay&#34;: params[&#34;weight_decay&#34;]}
+        optim_args = {
+            &#34;weight_decay&#34;: params[&#34;weight_decay&#34;],
+            &#34;eps&#34;: params[&#34;momentum&#34;],
+            # &#34;dampening&#34;: params[&#34;momentum&#34;],
+        }
 
         try:
             train, test = self.trainModel.fit(
-                params[&#34;epochs&#34;],
+                10,
                 trainLoader,
                 testLoader,
                 loss_function=params[&#34;loss_function&#34;],
@@ -215,7 +225,7 @@ class Tuner:
             )
         except:
             train, test = self.trainModel.fit(
-                params[&#34;epochs&#34;],
+                10,
                 trainLoader,
                 testLoader,
                 loss_function=params[&#34;loss_function&#34;],
@@ -237,39 +247,76 @@ class Tuner:
             params (optuna.trial.FrozenTrial): The best trial as determined by optuna
             path (Path, optional): Path to saving location. Defaults to PATH.
         &#34;&#34;&#34;
+        pathway = Path(os.getcwd() + &#34;/data/models/bestTrial&#34;)
+        if not exists(pathway):
+            os.mkdir(pathway)
+        self.trainModel.saveInternalStates(pathway)
 
-        with open(path / self.trainModel.run_name / &#34;modelParameters.p&#34;, &#34;wb&#34;) as fp:
+        if not exists(path / &#34;updatedModelUnscaled&#34;):
+            os.mkdir(path / &#34;updatedModelUnscaled&#34;)
+        with open(path / &#34;updatedModelUnscaled&#34; / &#34;modelParameters.p&#34;, &#34;wb&#34;) as fp:
             pickle.dump(params, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
     def saveStudy(self, path: Path):
+        if not exists(path):
+            os.mkdir(path)
         with open(path / f&#34;{self.study.study_name}.p&#34;, &#34;wb&#34;) as fp:
+            print(f&#34;Saving Study with Name: {self.study.study_name}&#34;)
             pickle.dump(self.study, fp, protocol=pickle.HIGHEST_PROTOCOL)
+
+    def loadStudy(self, path: Path):
+        with open(path, &#34;rb&#34;) as file:
+            data = pickle.load(file)
+        return data
+
+    def logging_callback(self, study, frozen_trial):
+        previous_best_value = study.user_attrs.get(&#34;previous_best_value&#34;, None)
+        if previous_best_value != study.best_value:
+            study.set_user_attr(&#34;previous_best_value&#34;, study.best_value)
+            print(
+                &#34;Trial {} finished with best value: {} and parameters: {}. &#34;.format(
+                    frozen_trial.number,
+                    frozen_trial.value,
+                    frozen_trial.params,
+                )
+            )
+            self.saveBestTrial(frozen_trial.params)
 
 
 if __name__ == &#34;__main__&#34;:
     import os
 
     DATA_PATH = Path(os.getcwd() + os.path.normpath(&#34;/data/all/trainDataTogether.csv&#34;))
-    STUDY_PATH = Path(os.getcwd() + os.path.normpath(&#34;/data/model/studies&#34;))
+    STUDY_PATH = Path(
+        os.getcwd() + os.path.normpath(&#34;/data/model/studies/50TrialsScaled&#34;)
+    )
+    STUDY_LOAD = Path(
+        os.getcwd() + os.path.normpath(r&#34;\data\model\studies\50trialsScaled.p&#34;)
+    )
 
-    tuner = Tuner(DATA_PATH, epochs=1, direction=&#34;minimize&#34;)
-    best_trial = tuner.optimize(n_trials=30)
+    tuner = Tuner(
+        DATA_PATH, epochs=1, direction=&#34;minimize&#34;, sampler=optuna.samplers.CmaEsSampler
+    )
+    best_trial = tuner.optimize(n_trials=50)
     tuner.saveStudy(STUDY_PATH)
+    # study = tuner.loadStudy(STUDY_LOAD)
+
     params = {
-        &#34;n_layers&#34;: 2,
-        &#34;epochs&#34;: 10,
-        &#34;learning_rate&#34;: 0.011234369803867918,
-        &#34;optimizer&#34;: &#34;Adam&#34;,
+        &#34;n_layers&#34;: 3,
+        &#34;epochs&#34;: 2,
+        &#34;learning_rate&#34;: 0.2505950956626377,
+        &#34;optimizer&#34;: &#34;Adamax&#34;,
         &#34;scale_data&#34;: True,
         &#34;loss_function&#34;: &#34;MSELoss&#34;,
-        &#34;activation&#34;: &#34;ReLU&#34;,
-        &#34;batch_size&#34;: 45,
-        &#34;weight_decay&#34;: 0.004806115415928892,
-        &#34;dampening&#34;: 0.14748269612902007,
-        &#34;momentum&#34;: 0.18338038149945735,
-        &#34;dropout&#34;: 0.35584706061342836,
-        &#34;n_units_l0&#34;: 29,
-        &#34;n_units_l1&#34;: 33,
+        &#34;activation&#34;: &#34;GELU&#34;,
+        &#34;batch_size&#34;: 65,
+        &#34;weight_decay&#34;: 0.00035351893312748976,
+        &#34;dampening&#34;: 0.1721094552252759,
+        &#34;momentum&#34;: 0.21608929927906143,
+        &#34;dropout&#34;: 0.2535510202298927,
+        &#34;n_units_l0&#34;: 27,
+        &#34;n_units_l1&#34;: 20,
+        &#34;n_units_l2&#34;: 14,
     }
     tuner.tuneModel(best_trial.params, None, True)</code></pre>
 </details>
@@ -338,7 +385,10 @@ if __name__ == &#34;__main__&#34;:
         self.direction = direction
         # create study
         self.study = optuna.create_study(
-            direction=direction, sampler=sampler(), pruner=pruner()
+            direction=direction,
+            sampler=sampler(),
+            pruner=pruner(),
+            storage=&#34;sqlite:///50Studies_new.db&#34;,
         )
 
     def optimize(
@@ -359,7 +409,8 @@ if __name__ == &#34;__main__&#34;:
         self.study.optimize(
             self.__objective,
             n_trials=n_trials,
-            catch=(RuntimeError, RuntimeWarning, TypeError),
+            catch=(RuntimeError, RuntimeWarning, TypeError, ValueError),
+            callbacks=[self.logging_callback],
         )
 
         return self.study.best_trial
@@ -378,24 +429,25 @@ if __name__ == &#34;__main__&#34;:
         &#34;&#34;&#34;
         params = {
             &#34;n_layers&#34;: trial.suggest_int(&#34;n_layers&#34;, 1, 5),
-            &#34;epochs&#34;: trial.suggest_int(&#34;epochs&#34;, 1, 25),
             &#34;n_units_layers&#34;: [],
             &#34;learning_rate&#34;: trial.suggest_loguniform(&#34;learning_rate&#34;, 1e-6, 9e-1),
             &#34;optimizer&#34;: trial.suggest_categorical(
-                &#34;optimizer&#34;, [&#34;SGD&#34;, &#34;ASGD&#34;, &#34;Adam&#34;, &#34;Adamax&#34;]
+                &#34;optimizer&#34;,
+                [&#34;Adamax&#34;],  # &#34;ASGD&#34;, &#34;Adam&#34;, &#34;Adamax&#34;]
             ),
             &#34;scale_data&#34;: trial.suggest_categorical(&#34;scale_data&#34;, [True]),
             &#34;loss_function&#34;: trial.suggest_categorical(
                 &#34;loss_function&#34;,
                 [
                     &#34;FocalTverskyLoss&#34;,
-                    &#34;TverskyLoss&#34;,
-                    &#34;L1Loss&#34;,
+                    # &#34;TverskyLoss&#34;,
+                    # &#34;L1Loss&#34;,
                     &#34;MSELoss&#34;,
+                    &#34;HuberLoss&#34;,
                 ],
             ),
             &#34;activation&#34;: trial.suggest_categorical(
-                &#34;activation&#34;, [&#34;ReLU&#34;, &#34;Sigmoid&#34;, &#34;ELU&#34;]
+                &#34;activation&#34;, [&#34;Sigmoid&#34;, &#34;GELU&#34;]  # [&#34;ReLU&#34;, &#34;Sigmoid&#34;, &#34;ELU&#34;]
             ),
             &#34;batch_size&#34;: trial.suggest_int(&#34;batch_size&#34;, 50, 70),
             &#34;weight_decay&#34;: trial.suggest_loguniform(&#34;weight_decay&#34;, 9e-5, 9e-2),
@@ -461,11 +513,15 @@ if __name__ == &#34;__main__&#34;:
         except:
             params[&#34;loss_function&#34;] = getattr(losses, params[&#34;loss_function&#34;])
 
-        optim_args = {&#34;weight_decay&#34;: params[&#34;weight_decay&#34;]}
+        optim_args = {
+            &#34;weight_decay&#34;: params[&#34;weight_decay&#34;],
+            &#34;eps&#34;: params[&#34;momentum&#34;],
+            # &#34;dampening&#34;: params[&#34;momentum&#34;],
+        }
 
         try:
             train, test = self.trainModel.fit(
-                params[&#34;epochs&#34;],
+                10,
                 trainLoader,
                 testLoader,
                 loss_function=params[&#34;loss_function&#34;],
@@ -477,7 +533,7 @@ if __name__ == &#34;__main__&#34;:
             )
         except:
             train, test = self.trainModel.fit(
-                params[&#34;epochs&#34;],
+                10,
                 trainLoader,
                 testLoader,
                 loss_function=params[&#34;loss_function&#34;],
@@ -499,16 +555,81 @@ if __name__ == &#34;__main__&#34;:
             params (optuna.trial.FrozenTrial): The best trial as determined by optuna
             path (Path, optional): Path to saving location. Defaults to PATH.
         &#34;&#34;&#34;
+        pathway = Path(os.getcwd() + &#34;/data/models/bestTrial&#34;)
+        if not exists(pathway):
+            os.mkdir(pathway)
+        self.trainModel.saveInternalStates(pathway)
 
-        with open(path / self.trainModel.run_name / &#34;modelParameters.p&#34;, &#34;wb&#34;) as fp:
+        if not exists(path / &#34;updatedModelUnscaled&#34;):
+            os.mkdir(path / &#34;updatedModelUnscaled&#34;)
+        with open(path / &#34;updatedModelUnscaled&#34; / &#34;modelParameters.p&#34;, &#34;wb&#34;) as fp:
             pickle.dump(params, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
     def saveStudy(self, path: Path):
+        if not exists(path):
+            os.mkdir(path)
         with open(path / f&#34;{self.study.study_name}.p&#34;, &#34;wb&#34;) as fp:
-            pickle.dump(self.study, fp, protocol=pickle.HIGHEST_PROTOCOL)</code></pre>
+            print(f&#34;Saving Study with Name: {self.study.study_name}&#34;)
+            pickle.dump(self.study, fp, protocol=pickle.HIGHEST_PROTOCOL)
+
+    def loadStudy(self, path: Path):
+        with open(path, &#34;rb&#34;) as file:
+            data = pickle.load(file)
+        return data
+
+    def logging_callback(self, study, frozen_trial):
+        previous_best_value = study.user_attrs.get(&#34;previous_best_value&#34;, None)
+        if previous_best_value != study.best_value:
+            study.set_user_attr(&#34;previous_best_value&#34;, study.best_value)
+            print(
+                &#34;Trial {} finished with best value: {} and parameters: {}. &#34;.format(
+                    frozen_trial.number,
+                    frozen_trial.value,
+                    frozen_trial.params,
+                )
+            )
+            self.saveBestTrial(frozen_trial.params)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
+<dt id="src.models.tuner.Tuner.loadStudy"><code class="name flex">
+<span>def <span class="ident">loadStudy</span></span>(<span>self, path: pathlib.Path)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def loadStudy(self, path: Path):
+    with open(path, &#34;rb&#34;) as file:
+        data = pickle.load(file)
+    return data</code></pre>
+</details>
+</dd>
+<dt id="src.models.tuner.Tuner.logging_callback"><code class="name flex">
+<span>def <span class="ident">logging_callback</span></span>(<span>self, study, frozen_trial)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def logging_callback(self, study, frozen_trial):
+    previous_best_value = study.user_attrs.get(&#34;previous_best_value&#34;, None)
+    if previous_best_value != study.best_value:
+        study.set_user_attr(&#34;previous_best_value&#34;, study.best_value)
+        print(
+            &#34;Trial {} finished with best value: {} and parameters: {}. &#34;.format(
+                frozen_trial.number,
+                frozen_trial.value,
+                frozen_trial.params,
+            )
+        )
+        self.saveBestTrial(frozen_trial.params)</code></pre>
+</details>
+</dd>
 <dt id="src.models.tuner.Tuner.optimize"><code class="name flex">
 <span>def <span class="ident">optimize</span></span>(<span>self, n_trials: int) ‑> optuna.trial._frozen.FrozenTrial</span>
 </code></dt>
@@ -546,7 +667,8 @@ if __name__ == &#34;__main__&#34;:
     self.study.optimize(
         self.__objective,
         n_trials=n_trials,
-        catch=(RuntimeError, RuntimeWarning, TypeError),
+        catch=(RuntimeError, RuntimeWarning, TypeError, ValueError),
+        callbacks=[self.logging_callback],
     )
 
     return self.study.best_trial</code></pre>
@@ -575,8 +697,14 @@ if __name__ == &#34;__main__&#34;:
         params (optuna.trial.FrozenTrial): The best trial as determined by optuna
         path (Path, optional): Path to saving location. Defaults to PATH.
     &#34;&#34;&#34;
+    pathway = Path(os.getcwd() + &#34;/data/models/bestTrial&#34;)
+    if not exists(pathway):
+        os.mkdir(pathway)
+    self.trainModel.saveInternalStates(pathway)
 
-    with open(path / self.trainModel.run_name / &#34;modelParameters.p&#34;, &#34;wb&#34;) as fp:
+    if not exists(path / &#34;updatedModelUnscaled&#34;):
+        os.mkdir(path / &#34;updatedModelUnscaled&#34;)
+    with open(path / &#34;updatedModelUnscaled&#34; / &#34;modelParameters.p&#34;, &#34;wb&#34;) as fp:
         pickle.dump(params, fp, protocol=pickle.HIGHEST_PROTOCOL)</code></pre>
 </details>
 </dd>
@@ -590,12 +718,15 @@ if __name__ == &#34;__main__&#34;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def saveStudy(self, path: Path):
+    if not exists(path):
+        os.mkdir(path)
     with open(path / f&#34;{self.study.study_name}.p&#34;, &#34;wb&#34;) as fp:
+        print(f&#34;Saving Study with Name: {self.study.study_name}&#34;)
         pickle.dump(self.study, fp, protocol=pickle.HIGHEST_PROTOCOL)</code></pre>
 </details>
 </dd>
 <dt id="src.models.tuner.Tuner.tuneModel"><code class="name flex">
-<span>def <span class="ident">tuneModel</span></span>(<span>self, params: dict, trial: <module 'optuna.trial' from 'C:\\Users\\stephan.schumacher\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\optuna\\trial\\__init__.py'> = None, saveState: bool = False) ‑> tuple[typing.Union[<built-in method tensor of type object at 0x00007FFBF33DE7F0>, float], typing.Union[torch.Tensor, float]]</span>
+<span>def <span class="ident">tuneModel</span></span>(<span>self, params: dict, trial: <module 'optuna.trial' from 'C:\\Users\\stephan.schumacher\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\optuna\\trial\\__init__.py'> = None, saveState: bool = False) ‑> tuple[typing.Union[<built-in method tensor of type object at 0x00007FFBCDB1E7F0>, float], typing.Union[torch.Tensor, float]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Tunes the model accoring to objective parameters.</p>
@@ -662,11 +793,15 @@ float]</code></dt>
     except:
         params[&#34;loss_function&#34;] = getattr(losses, params[&#34;loss_function&#34;])
 
-    optim_args = {&#34;weight_decay&#34;: params[&#34;weight_decay&#34;]}
+    optim_args = {
+        &#34;weight_decay&#34;: params[&#34;weight_decay&#34;],
+        &#34;eps&#34;: params[&#34;momentum&#34;],
+        # &#34;dampening&#34;: params[&#34;momentum&#34;],
+    }
 
     try:
         train, test = self.trainModel.fit(
-            params[&#34;epochs&#34;],
+            10,
             trainLoader,
             testLoader,
             loss_function=params[&#34;loss_function&#34;],
@@ -678,7 +813,7 @@ float]</code></dt>
         )
     except:
         train, test = self.trainModel.fit(
-            params[&#34;epochs&#34;],
+            10,
             trainLoader,
             testLoader,
             loss_function=params[&#34;loss_function&#34;],
@@ -714,7 +849,9 @@ float]</code></dt>
 <ul>
 <li>
 <h4><code><a title="src.models.tuner.Tuner" href="#src.models.tuner.Tuner">Tuner</a></code></h4>
-<ul class="">
+<ul class="two-column">
+<li><code><a title="src.models.tuner.Tuner.loadStudy" href="#src.models.tuner.Tuner.loadStudy">loadStudy</a></code></li>
+<li><code><a title="src.models.tuner.Tuner.logging_callback" href="#src.models.tuner.Tuner.logging_callback">logging_callback</a></code></li>
 <li><code><a title="src.models.tuner.Tuner.optimize" href="#src.models.tuner.Tuner.optimize">optimize</a></code></li>
 <li><code><a title="src.models.tuner.Tuner.saveBestTrial" href="#src.models.tuner.Tuner.saveBestTrial">saveBestTrial</a></code></li>
 <li><code><a title="src.models.tuner.Tuner.saveStudy" href="#src.models.tuner.Tuner.saveStudy">saveStudy</a></code></li>

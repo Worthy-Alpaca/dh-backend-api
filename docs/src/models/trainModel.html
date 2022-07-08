@@ -148,7 +148,9 @@ class TrainModel:
         timestamp = datetime.now().strftime(&#34;%m-%d-%Y_%H_%M_%S&#34;)
         self.run_name = f&#34;{self.optimizer.__class__.__name__}_{self.loss_function.__class__.__name__}-{self.epochs}@{timestamp}&#34;
         # creating tensorboard integrationa
-        self.writer = SummaryWriter(os.getcwd() + os.path.normpath(&#34;/data/tensorboard&#34;))
+        self.writer = SummaryWriter(
+            os.getcwd() + os.path.normpath(f&#34;/data/tensorboard/{self.run_name}&#34;)
+        )
         # adding Model overview graph to tensorboard
         data, labels = next(iter(trainLoader))
         self.writer.add_graph(self.model, data.to(self.device))
@@ -226,8 +228,6 @@ class TrainModel:
             # adding batch loss to collection
             total_loss_train += batch_loss.item()
             # calculating the batch accuracy
-            # acc = (output.argmax(dim=1) == train_target).sum().float().item()
-            # acc = acc / train_target.size(0)
             acc = mean_absolute_error(output, train_target)
             # adding batch accuracy to collection
             total_acc_train += acc
@@ -360,7 +360,7 @@ class TrainModel:
         &#34;&#34;&#34;
         if not os.path.exists(path / self.run_name):
             os.makedirs(path / self.run_name)
-        model_scripted = torch.jit.script(self.model)
+        model_scripted = torch.jit.script(self.model.cpu())
         model_scripted.save(path / self.run_name / &#34;modelState.pt&#34;)
         # with open(path / self.run_name / &#34;modelState.p&#34;, &#34;wb&#34;) as fp:
         # pickle.dump(self.model, fp, protocol=pickle.HIGHEST_PROTOCOL)
@@ -436,7 +436,6 @@ class TrainModel:
         df[&#34;machine&#34;] = df[&#34;machine&#34;].cat.codes.values
         # dropping NaN values
         df = df.dropna()
-        df = df[df.timeNeeded != 0]
         # splitting data in features and labels
         x = df.drop([&#34;timeNeeded&#34;], axis=1)
         y = df[[&#34;timeNeeded&#34;]]
@@ -469,13 +468,13 @@ if __name__ == &#34;__main__&#34;:
     model = Network(4, 1, 3, [16, 32, 16])
 
     trainModel = TrainModel(DATA_PATH, model)
-    trainLoader, testLoader = trainModel.prepareData(scale_data=False)
+    trainLoader, testLoader = trainModel.prepareData(scale_data=True)
     trainModel.fit(2, trainLoader, testLoader, show_summary=True)
     # data = np.array([308, 1, 306, 500])
-    data = np.array([168, 0, 225.6, 128.0])
+    data = np.array([4, 0, 255, 224.678])
     pred = trainModel.predict(data)
     print(pred)
-    data = np.array([168, 1, 225.6, 128.0])
+    data = np.array([600, 1, 225.6, 128.0])
     pred = trainModel.predict(data)
     print(pred)</code></pre>
 </details>
@@ -599,7 +598,9 @@ if __name__ == &#34;__main__&#34;:
         timestamp = datetime.now().strftime(&#34;%m-%d-%Y_%H_%M_%S&#34;)
         self.run_name = f&#34;{self.optimizer.__class__.__name__}_{self.loss_function.__class__.__name__}-{self.epochs}@{timestamp}&#34;
         # creating tensorboard integrationa
-        self.writer = SummaryWriter(os.getcwd() + os.path.normpath(&#34;/data/tensorboard&#34;))
+        self.writer = SummaryWriter(
+            os.getcwd() + os.path.normpath(f&#34;/data/tensorboard/{self.run_name}&#34;)
+        )
         # adding Model overview graph to tensorboard
         data, labels = next(iter(trainLoader))
         self.writer.add_graph(self.model, data.to(self.device))
@@ -677,8 +678,6 @@ if __name__ == &#34;__main__&#34;:
             # adding batch loss to collection
             total_loss_train += batch_loss.item()
             # calculating the batch accuracy
-            # acc = (output.argmax(dim=1) == train_target).sum().float().item()
-            # acc = acc / train_target.size(0)
             acc = mean_absolute_error(output, train_target)
             # adding batch accuracy to collection
             total_acc_train += acc
@@ -811,7 +810,7 @@ if __name__ == &#34;__main__&#34;:
         &#34;&#34;&#34;
         if not os.path.exists(path / self.run_name):
             os.makedirs(path / self.run_name)
-        model_scripted = torch.jit.script(self.model)
+        model_scripted = torch.jit.script(self.model.cpu())
         model_scripted.save(path / self.run_name / &#34;modelState.pt&#34;)
         # with open(path / self.run_name / &#34;modelState.p&#34;, &#34;wb&#34;) as fp:
         # pickle.dump(self.model, fp, protocol=pickle.HIGHEST_PROTOCOL)
@@ -887,7 +886,6 @@ if __name__ == &#34;__main__&#34;:
         df[&#34;machine&#34;] = df[&#34;machine&#34;].cat.codes.values
         # dropping NaN values
         df = df.dropna()
-        df = df[df.timeNeeded != 0]
         # splitting data in features and labels
         x = df.drop([&#34;timeNeeded&#34;], axis=1)
         y = df[[&#34;timeNeeded&#34;]]
@@ -1011,7 +1009,9 @@ if __name__ == &#34;__main__&#34;:
     timestamp = datetime.now().strftime(&#34;%m-%d-%Y_%H_%M_%S&#34;)
     self.run_name = f&#34;{self.optimizer.__class__.__name__}_{self.loss_function.__class__.__name__}-{self.epochs}@{timestamp}&#34;
     # creating tensorboard integrationa
-    self.writer = SummaryWriter(os.getcwd() + os.path.normpath(&#34;/data/tensorboard&#34;))
+    self.writer = SummaryWriter(
+        os.getcwd() + os.path.normpath(f&#34;/data/tensorboard/{self.run_name}&#34;)
+    )
     # adding Model overview graph to tensorboard
     data, labels = next(iter(trainLoader))
     self.writer.add_graph(self.model, data.to(self.device))
@@ -1168,7 +1168,6 @@ if __name__ == &#34;__main__&#34;:
     df[&#34;machine&#34;] = df[&#34;machine&#34;].cat.codes.values
     # dropping NaN values
     df = df.dropna()
-    df = df[df.timeNeeded != 0]
     # splitting data in features and labels
     x = df.drop([&#34;timeNeeded&#34;], axis=1)
     y = df[[&#34;timeNeeded&#34;]]
@@ -1218,7 +1217,7 @@ if __name__ == &#34;__main__&#34;:
     &#34;&#34;&#34;
     if not os.path.exists(path / self.run_name):
         os.makedirs(path / self.run_name)
-    model_scripted = torch.jit.script(self.model)
+    model_scripted = torch.jit.script(self.model.cpu())
     model_scripted.save(path / self.run_name / &#34;modelState.pt&#34;)
     # with open(path / self.run_name / &#34;modelState.p&#34;, &#34;wb&#34;) as fp:
     # pickle.dump(self.model, fp, protocol=pickle.HIGHEST_PROTOCOL)
