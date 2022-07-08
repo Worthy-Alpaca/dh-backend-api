@@ -28,42 +28,31 @@ class DeployModel:
         try:
             self.scaleX: MinMaxScaler = joblib.load(path / "scaleStateX.gz")
             self.scaleY: MinMaxScaler = joblib.load(path / "scaleStateY.gz")
-            self.model: torch.nn.Module = torch.jit.load(path / "modelState.pt")
+            self.model: torch.nn.Module = torch.jit.load(path / "modelState.pt").to(
+                "cpu"
+            )
         except Exception as e:
             raise DeplotmentException(f"The Loading of the Model failed. {e}")
 
     def predict(self, data: np.ndarray) -> np.ndarray:
-        data = data.reshape(1, -1)
+        """Method to predict with the loaded Neural Network.
 
-        # if self.model.scale_data:
-        data = self.scaleX.transform(data)
+        Args:
+            data (np.ndarray): The Data needed for the prediction.
+
+        Returns:
+            np.ndarray: The predicted value(s).
+        """
+        data = data.reshape(1, -1)
+        try:
+            data = self.scaleX.transform(data)
+        except:
+            pass
         data = torch.from_numpy(data)
         prediction = self.model(data.float())
         prediction = prediction.cpu().detach().numpy()
-        # if self.model.scale_data:
-        prediction = self.scaleY.inverse_transform(prediction)
-
+        try:
+            prediction = self.scaleY.inverse_transform(prediction)
+        except:
+            pass
         return prediction
-
-
-if __name__ == "__main__":
-    import sys
-
-    if sys.stdin and sys.stdin.isatty():
-        # running interactively
-        print("running interactively")
-    else:
-        with open("output", "w") as f:
-            f.write("running in the background!\n")
-    path = Path(
-        ""
-        r"C:\Users\stephan.schumacher\Documents\repos\dh-backend-api\data\models\SGD_MSELoss-13@06-24-2022_11_41_36"
-    )
-    model = DeployModel(path)
-
-    data = np.array([168, 0, 225.6, 128.0])
-    pred = model.predict(data)
-    print(pred)
-    data = np.array([1, 0, 15, 19])
-    pred = model.predict(data)
-    print(pred)
