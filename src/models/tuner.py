@@ -217,6 +217,11 @@ class Tuner:
             params (optuna.trial.FrozenTrial): The best trial as determined by optuna
             path (Path, optional): Path to saving location. Defaults to PATH.
         """
+        pathway = Path(os.getcwd() + "/data/models/bestTrial")
+        if not exists(pathway):
+            os.mkdir(pathway)
+        self.trainModel.saveInternalStates(pathway)
+
         if not exists(path / "updatedModelUnscaled"):
             os.mkdir(path / "updatedModelUnscaled")
         with open(path / "updatedModelUnscaled" / "modelParameters.p", "wb") as fp:
@@ -256,13 +261,12 @@ if __name__ == "__main__":
         os.getcwd() + os.path.normpath("/data/model/studies/50TrialsScaled")
     )
     STUDY_LOAD = Path(
-        os.getcwd()
-        + os.path.normpath(
-            r"\data\model\studies\modelParameters\no-name-a1265619-01d9-4bde-a16c-0f45e15de97d"
-        )
+        os.getcwd() + os.path.normpath(r"\data\model\studies\50trialsScaled.p")
     )
 
-    tuner = Tuner(DATA_PATH, epochs=1, direction="minimize")
+    tuner = Tuner(
+        DATA_PATH, epochs=1, direction="minimize", sampler=optuna.samplers.CmaEsSampler
+    )
     best_trial = tuner.optimize(n_trials=50)
     tuner.saveStudy(STUDY_PATH)
     # study = tuner.loadStudy(STUDY_LOAD)
@@ -284,4 +288,4 @@ if __name__ == "__main__":
         "n_units_l1": 20,
         "n_units_l2": 14,
     }
-    # tuner.tuneModel(params, None, True)
+    tuner.tuneModel(best_trial.params, None, True)
