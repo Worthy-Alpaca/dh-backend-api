@@ -332,7 +332,7 @@ class TrainModel:
         """
         if not os.path.exists(path / self.run_name):
             os.makedirs(path / self.run_name)
-        model_scripted = torch.jit.script(self.model)
+        model_scripted = torch.jit.script(self.model.cpu())
         model_scripted.save(path / self.run_name / "modelState.pt")
         # with open(path / self.run_name / "modelState.p", "wb") as fp:
         # pickle.dump(self.model, fp, protocol=pickle.HIGHEST_PROTOCOL)
