@@ -117,10 +117,7 @@ def startSimulation(
         manufacturing = Manufacturing(data, machine)
         plot_x, plot_y = manufacturing.getPlots()
         model = DeployModel(
-            Path(
-                os.getcwd()
-                + os.path.normpath("/data/models/SGD_HuberLoss-10@07-06-2022_09_40_15")
-            )
+            Path(os.getcwd() + os.path.normpath("/data/models/FINAL MODEL"))
         )
         predArray = np.array(
             [
