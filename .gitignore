@@ -5,3 +5,4 @@ __pycache__
 output.txt
 best_trials.txt
 /env
+*.db
