@@ -277,11 +277,12 @@ for m in mList:
     dummyMachine = DummyMachine(m)
     model = DeployModel(
         Path(
-            r"C:\Users\stephan.schumacher\Documents\repos\dh-backend-api\data\models\SGD_MSELoss-10@07-04-2022_14_59_11"
-        )
+            r"C:\Users\stephan.schumacher\Documents\repos\dh-backend-api\data\models\FINAL MODEL"
+        ),
     )
     m10Data = []
     # runsList = ["2196821"]
+    print(f'Creating validation Data for {m["machine"]} ')
     for productId in tqdm(runsList):
         try:
             path = Path(
@@ -299,20 +300,20 @@ for m in mList:
             predArray = np.array(
                 [
                     len(data[0]),
-                    0,
+                    0 if machine.machineName == "m10" else 1,
                     data[0]["X"].max() + offsets[0],
                     data[0]["Y"].max() + offsets[1],
                 ]
             )
             # predArray = np.array([0, 0, 0, 0])
             predictedData = model.predict(predArray)
-            for i in range(26):
+            for i in range(150):
 
                 m10Data.append(
                     (
                         productId,
                         "Classic",
-                        simulationData + np.random.randint(-20, 50),  # [0][0],
+                        simulationData + np.random.randint(-60, 180),  # [0][0],
                         len(data[0]),
                     )
                 )
@@ -322,13 +323,12 @@ for m in mList:
                 m10Data.append(
                     (
                         productId,
-                        "AI",
-                        predictedData[0][0]
-                        - 1200
-                        + np.random.randint(-20, 50),  # [0][0],
+                        "AI Model",
+                        predictedData[0][0] + np.random.randint(-60, 180),  # [0][0],
                         len(data[0]),
                     )
                 )
+
         except Exception as e:
             print("====== ERROR ======")
             continue
