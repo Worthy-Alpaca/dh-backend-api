@@ -49,7 +49,10 @@ class Tuner:
         self.direction = direction
         # create study
         self.study = optuna.create_study(
-            direction=direction, sampler=sampler(), pruner=pruner()
+            direction=direction,
+            sampler=sampler(),
+            pruner=pruner(),
+            storage="sqlite:///50Studies_new.db",
         )
 
     def optimize(
@@ -90,7 +93,6 @@ class Tuner:
         """
         params = {
             "n_layers": trial.suggest_int("n_layers", 1, 5),
-            "epochs": trial.suggest_int("epochs", 10, 10),
             "n_units_layers": [],
             "learning_rate": trial.suggest_loguniform("learning_rate", 1e-6, 9e-1),
             "optimizer": trial.suggest_categorical(
@@ -183,7 +185,7 @@ class Tuner:
 
         try:
             train, test = self.trainModel.fit(
-                params["epochs"],
+                10,
                 trainLoader,
                 testLoader,
                 loss_function=params["loss_function"],
@@ -195,7 +197,7 @@ class Tuner:
             )
         except:
             train, test = self.trainModel.fit(
-                params["epochs"],
+                10,
                 trainLoader,
                 testLoader,
                 loss_function=params["loss_function"],
