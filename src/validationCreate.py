@@ -1,7 +1,7 @@
 import os
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 
 import numpy as np
 from tqdm import tqdm
@@ -24,44 +24,13 @@ class ValidationCreate:
         """Used to create validation data."""
         pass
 
-    def __call__(self, *args: Any, **kwds: Any) -> None:
-        """Run this to start the validation Process."""
-        mList = [
-            {
-                "machine": "m10",
-                "cph": 23000,
-                "nozHeads": 6,
-                "SMD": True,
-                "offsets": {
-                    "checkpoint": [30, -20],
-                    "pcb": [0, 110],
-                    "tools": [30, 6320],
-                    "feedercarts": [
-                        {"ST-FL": [160, 20]},
-                        {"ST-RL": [160, 632]},
-                        {"ST-FR": ["0", "0"]},
-                        {"ST-RR": ["0", "0"]},
-                    ],
-                },
-            },
-            {
-                "machine": "m20",
-                "cph": 19000,
-                "nozHeads": 4,
-                "SMD": True,
-                "offsets": {
-                    "checkpoint": [110, 40],
-                    "pcb": [0, 70],
-                    "tools": [600, 900],
-                    "feedercarts": [
-                        {"ST-FL": [200, 0]},
-                        {"ST-RL": [200, 632]},
-                        {"ST-FR": ["-390", "0"]},
-                        {"ST-RR": ["-390", "632"]},
-                    ],
-                },
-            },
-        ]
+    def __call__(self, mList: List, usable_programms: List) -> None:
+        """Run this to start the validation Process.
+
+        Args:
+            mList (List): The list of machines to generate data for.
+            usable_programms (List): List of programms to be used for data generation.
+        """
 
         for m in mList:
             df = pd.read_csv(
@@ -89,8 +58,7 @@ class ValidationCreate:
                     r"C:\Users\stephan.schumacher\Documents\repos\dh-backend-api\data\models\FINAL MODEL"
                 ),
             )
-            m10Data = []
-            # runsList = ["2196821"]
+            machineData = []
             print(f'Creating validation Data for {m["machine"]} ')
             for productId in tqdm(runsList):
                 try:
@@ -114,11 +82,11 @@ class ValidationCreate:
                             data[0]["Y"].max() + offsets[1],
                         ]
                     )
-                    # predArray = np.array([0, 0, 0, 0])
+
                     predictedData = model.predict(predArray)
                     for i in range(150):
 
-                        m10Data.append(
+                        machineData.append(
                             (
                                 productId,
                                 "Classic",
@@ -129,7 +97,7 @@ class ValidationCreate:
 
                         if predictedData == np.nan:
                             predictedData = [[0]]
-                        m10Data.append(
+                        machineData.append(
                             (
                                 productId,
                                 "AI Model",
@@ -143,17 +111,17 @@ class ValidationCreate:
                     print("====== ERROR ======")
                     continue
 
-            m10Data = pd.DataFrame(
-                m10Data, columns=["Class", "Type", "Time", "Placements"]
+            machineData = pd.DataFrame(
+                machineData, columns=["Class", "Type", "Time", "Placements"]
             )
 
-            m10Data.to_csv(
+            machineData.to_csv(
                 os.getcwd()
                 + os.path.normpath(
                     f"/data/all/validation/{m['machine']}DataFrame_generated.csv"
                 ),
             )
-            df = pd.concat([df, m10Data], ignore_index=True)
+            df = pd.concat([df, machineData], ignore_index=True)
             df = df.sort_values(by="Class")
             df.to_csv(
                 os.getcwd()
@@ -361,3 +329,44 @@ if __name__ == "__main__":
     new_programms = set(os.listdir(path))
 
     usable_programms = list(new_programms.intersection(old_programms))
+
+    mList = [
+        {
+            "machine": "m10",
+            "cph": 23000,
+            "nozHeads": 6,
+            "SMD": True,
+            "offsets": {
+                "checkpoint": [30, -20],
+                "pcb": [0, 110],
+                "tools": [30, 6320],
+                "feedercarts": [
+                    {"ST-FL": [160, 20]},
+                    {"ST-RL": [160, 632]},
+                    {"ST-FR": ["0", "0"]},
+                    {"ST-RR": ["0", "0"]},
+                ],
+            },
+        },
+        {
+            "machine": "m20",
+            "cph": 19000,
+            "nozHeads": 4,
+            "SMD": True,
+            "offsets": {
+                "checkpoint": [110, 40],
+                "pcb": [0, 70],
+                "tools": [600, 900],
+                "feedercarts": [
+                    {"ST-FL": [200, 0]},
+                    {"ST-RL": [200, 632]},
+                    {"ST-FR": ["-390", "0"]},
+                    {"ST-RR": ["-390", "632"]},
+                ],
+            },
+        },
+    ]
+
+    validationcreate = ValidationCreate()
+
+    validationcreate(mList, usable_programms)
