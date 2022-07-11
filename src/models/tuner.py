@@ -74,7 +74,7 @@ class Tuner:
             self.__objective,
             n_trials=n_trials,
             catch=(RuntimeError, RuntimeWarning, TypeError, ValueError),
-            callbacks=[self.logging_callback],
+            callbacks=[self.__logging_callback],
         )
 
         return self.study.best_trial
@@ -219,7 +219,7 @@ class Tuner:
             params (optuna.trial.FrozenTrial): The best trial as determined by optuna
             path (Path, optional): Path to saving location. Defaults to PATH.
         """
-        pathway = Path(os.getcwd() + "/data/models/bestTrial")
+        pathway = Path(os.getcwd() + "/data/models/bestTrial5")
         if not exists(pathway):
             os.mkdir(pathway)
         self.trainModel.saveInternalStates(pathway)
@@ -230,18 +230,39 @@ class Tuner:
             pickle.dump(params, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
     def saveStudy(self, path: Path):
+        """Saves the study to the provided path.
+
+        Args:
+            path (Path): Path to saving location.
+        """
         if not exists(path):
             os.mkdir(path)
         with open(path / f"{self.study.study_name}.p", "wb") as fp:
             print(f"Saving Study with Name: {self.study.study_name}")
             pickle.dump(self.study, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
-    def loadStudy(self, path: Path):
+    def loadStudy(self, path: Path) -> optuna.study.Study:
+        """Load a study from the provided location.
+
+        Args:
+            path (Path): The location of the study.
+
+        Returns:
+            optuna.study.Study: The loaded study.
+        """
         with open(path, "rb") as file:
             data = pickle.load(file)
         return data
 
-    def logging_callback(self, study, frozen_trial):
+    def __logging_callback(
+        self, study: optuna.study.Study, frozen_trial: optuna.trial.FrozenTrial
+    ):
+        """Internal method used to save the current best trial.
+
+        Args:
+            study (optuna.study.Study): The current study.
+            frozen_trial (optuna.trial.FrozenTrial): The current best trial.
+        """
         previous_best_value = study.user_attrs.get("previous_best_value", None)
         if previous_best_value != study.best_value:
             study.set_user_attr("previous_best_value", study.best_value)
@@ -260,7 +281,7 @@ if __name__ == "__main__":
 
     DATA_PATH = Path(os.getcwd() + os.path.normpath("/data/all/trainDataTogether.csv"))
     STUDY_PATH = Path(
-        os.getcwd() + os.path.normpath("/data/model/studies/50TrialsScaled")
+        os.getcwd() + os.path.normpath("/data/model/studies/5TrialsScaled")
     )
     STUDY_LOAD = Path(
         os.getcwd() + os.path.normpath(r"\data\model\studies\50trialsScaled.p")
@@ -290,4 +311,4 @@ if __name__ == "__main__":
         "n_units_l1": 20,
         "n_units_l2": 14,
     }
-    tuner.tuneModel(best_trial.params, None, True)
+    # tuner.tuneModel(best_trial.params, None, True)
