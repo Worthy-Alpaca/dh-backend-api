@@ -1,25 +1,22 @@
-import pickle
-from pathlib import Path
-from types import FunctionType
-from typing import Any, Dict, Literal, Union
-from sqlalchemy import true
 import torch
-from sklearn.model_selection import train_test_split
-import numpy as np
-import torch.nn as nn
-from torch.utils.data import DataLoader
-import pandas as pd
-from datetime import datetime
 import optuna
-from torchmetrics.functional import mean_absolute_error
-from sklearn.preprocessing import MinMaxScaler
-from tqdm import tqdm
 import joblib
 import os
-
+import numpy as np
+import pandas as pd
+import torch.nn as nn
+from tqdm import tqdm
+from pathlib import Path
+from types import FunctionType
+from torchinfo import summary
+from datetime import datetime
+from typing import Any, Dict, Literal, Union
+from sklearn.model_selection import train_test_split
+from torch.utils.data import DataLoader
+from torchmetrics.functional import mean_absolute_error
+from sklearn.preprocessing import MinMaxScaler
 from torch.utils.tensorboard import SummaryWriter
 from torch.optim.lr_scheduler import ExponentialLR, MultiStepLR
-from torchinfo import summary
 
 try:
     from helper.MachineDataSet import MachineDataSet

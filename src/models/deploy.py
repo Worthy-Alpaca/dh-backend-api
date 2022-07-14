@@ -1,9 +1,9 @@
-from pathlib import Path
-import numpy as np
 import torch
 import joblib
-from sklearn.preprocessing import MinMaxScaler
 import os
+import numpy as np
+from pathlib import Path
+from sklearn.preprocessing import MinMaxScaler
 
 
 class DeplotmentException(Exception):

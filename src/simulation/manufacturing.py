@@ -1,38 +1,33 @@
-import math
-import sys
-import os
-import itertools
-from collections import deque
-from pathlib import Path
-import concurrent.futures
-import time as tm
-from typing import Union
-from matplotlib import pyplot as plt
-import numpy as np
-import pandas as pd
-from tqdm import tqdm
-import pickle
-
 PACKAGE_PARENT = "../"
 SCRIPT_DIR = os.path.dirname(
     os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__)))
 )
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
+
+import math
+import sys
+import os
+import itertools
+import pickle
+import concurrent.futures
+import time as tm
+import numpy as np
+import pandas as pd
+from collections import deque
+from pathlib import Path
+from typing import Union
+
 try:
     from simulation.machine import Machine
 except:
     from src.simulation.machine import Machine
 
-global XMOD
-XMOD = 1
-RANDOM_PROBLEMS = (0, 0)
-# DROPOFF = 0.1
+# the time delay for a pickup operation
 PICKUP = 0.1
-GLOBAL_TIME = []
 
 
 class Manufacturing:
-    def __init__(self, data: tuple, machine: Machine):
+    def __init__(self, data: tuple, machine: Machine) -> object:
         """Simulates the manufacturing process in SMD machines M10 and M20.
 
         Args:
@@ -68,42 +63,57 @@ class Manufacturing:
                 for key in machine:
                     self.feedercarts[key] = machine[key]
 
-    def getPlots(self):
-        plot_x = []
-        plot_y = []
-        x = self.data["X"].to_numpy()
-        y = self.data["Y"].to_numpy()
-        for offset in self.offsets:
-            plot_x.append((x + offset[0]).tolist())
-            plot_y.append((y + offset[1]).tolist())
-
-        plot_x, plot_y = list(itertools.chain.from_iterable(plot_x)), list(
-            itertools.chain.from_iterable(plot_y)
-        )
-        return plot_x, plot_y
-
-    def __calcTravelTime(
-        self, vectorA: tuple, vectorB: tuple, velocity: float
-    ) -> float:
-        """Calculates the travel time between two given location vectors.
+    def __call__(
+        self,
+        multiPickOption: bool = True,
+        plotPCB: bool = False,
+        useIdealState: bool = False,
+    ) -> Union[float, dict]:
+        """Start the assembly simulation.
 
         Args:
-            vectorA (tuple): Start locationvector.
-            vectorB (tuple): End locationvector.
-            velocity (float): The current velocity to use.
+            multiPickOption (bool): If the simulation uses multipick. Multipich decreases assembly time. Defaults to True.
+            plotPCB (bool): If coordinates should be returned. If true, returns a dict instead of a float. Defaults to False
+            useIdealState (bool): If the ideal state of the machine should be used. Impacts the veloticy used.
 
         Returns:
-            float: The calculated travel time.
+            float: If plotPCB is set to False.
+            dict: If plotPCB is set to True. Contains time, plot_x, plot_y.
         """
-        # calculate the connection vector
-        vector_AB = (
-            (float(vectorB[0]) - float(vectorA[0])),
-            (float(vectorB[1]) - float(vectorA[1])),
-        )
-        # calculate the length of the connection vector
-        path_length = math.sqrt(vector_AB[0] ** 2 + vector_AB[1] ** 2)
-        # calculate the travel time and return it
-        return path_length / velocity
+        self.multiPickOption = multiPickOption
+        time = 0
+        plotX = []
+        plotY = []
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            for i in self.offsets:
+
+                future = executor.submit(self.calcTime, i, useIdealState)
+                iter_data = future.result()
+
+                time = time + iter_data["time"]
+                plotX.append(iter_data["plot_x"])
+                plotY.append(iter_data["plot_y"])
+        if plotPCB == True:
+            return {
+                "time": time,
+                "plot_x": list(itertools.chain.from_iterable(plotX)),
+                "plot_y": list(itertools.chain.from_iterable(plotY)),
+            }
+        return time
+
+    def coating(self) -> float:
+        """simulates the time for coating a PCB
+
+        Returns:
+            float: The calculated time.
+        """
+        velocity = 20  # mm/s
+
+        # highest coordinate on PCB
+        offset = max(self.offsets)
+        high = self.data["Y"].max() + offset[1]
+        return math.sqrt(0**2 + high**2) / velocity
 
     def calcTime(self, offset_row: tuple, useIdealState: bool):
         """Calculates the time for a given offset.
@@ -389,73 +399,31 @@ class Manufacturing:
                         + DROPOFF
                         + PICKUP
                     )
-                GLOBAL_TIME.append(TIME)
                 # saving coordinates for visual plotting
                 self.plotting_x.append(plot_coordinates[0])
                 self.plotting_y.append(plot_coordinates[1])
 
         return {"time": TIME, "plot_x": self.plotting_x, "plot_y": self.plotting_y}
 
-    def __call__(
-        self,
-        multiPickOption: bool = True,
-        plotPCB: bool = False,
-        useIdealState: bool = False,
-    ) -> Union[float, dict]:
-        """Start the assembly simulation.
+    def __calcTravelTime(
+        self, vectorA: tuple, vectorB: tuple, velocity: float
+    ) -> float:
+        """Calculates the travel time between two given location vectors.
 
         Args:
-            multiPickOption (bool): If the simulation uses multipick. Multipich decreases assembly time. Defaults to True.
-            plotPCB (bool): If coordinates should be returned. If true, returns a dict instead of a float. Defaults to False
-            useIdealState (bool): If the ideal state of the machine should be used. Impacts the veloticy used.
+            vectorA (tuple): Start locationvector.
+            vectorB (tuple): End locationvector.
+            velocity (float): The current velocity to use.
 
         Returns:
-            float: If plotPCB is set to False.
-            dict: If plotPCB is set to True. Contains time, plot_x, plot_y.
+            float: The calculated travel time.
         """
-        self.multiPickOption = multiPickOption
-        time = 0
-        plotX = []
-        plotY = []
-
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            for i in self.offsets:
-
-                future = executor.submit(self.calcTime, i, useIdealState)
-                iter_data = future.result()
-
-                time = time + iter_data["time"]
-                plotX.append(iter_data["plot_x"])
-                plotY.append(iter_data["plot_y"])
-        if plotPCB == True:
-            return {
-                "time": time,
-                "plot_x": list(itertools.chain.from_iterable(plotX)),
-                "plot_y": list(itertools.chain.from_iterable(plotY)),
-            }
-        return time
-
-    def coating(self) -> float:
-        """simulates the time for coating a PCB
-
-        Returns:
-            float: The calculated time.
-        """
-        velocity = 20  # mm/s
-
-        # highest coordinate on PCB
-        offset = max(self.offsets)
-        high = self.data["Y"].max() + offset[1]
-        return math.sqrt(0**2 + high**2) / velocity
-
-
-if __name__ == "__main__":
-    from simulation.cartsetup import CartSetup
-    from data.dataloader import DataLoader
-
-    path = Path(os.getcwd() + os.path.normpath("/data/3160194"))
-    dataloader = DataLoader(path)
-    machine = Machine("M20")
-    manufacturing = Manufacturing(dataloader(), machine)
-    manuData = manufacturing(multiPickOption=True, multithread=False, plotPCB=True)
-    print(manuData["plot_x"])
+        # calculate the connection vector
+        vector_AB = (
+            (float(vectorB[0]) - float(vectorA[0])),
+            (float(vectorB[1]) - float(vectorA[1])),
+        )
+        # calculate the length of the connection vector
+        path_length = math.sqrt(vector_AB[0] ** 2 + vector_AB[1] ** 2)
+        # calculate the travel time and return it
+        return path_length / velocity

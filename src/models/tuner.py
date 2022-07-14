@@ -1,10 +1,11 @@
-from pathlib import Path
-from os.path import exists
-from typing import Any, Literal, Union
-import numpy as np
-
 import torch
 import optuna
+import os
+import pickle
+import torch.nn as nn
+from pathlib import Path
+from typing import Literal, Union
+from os.path import exists
 
 try:
     from trainModel import TrainModel
@@ -14,10 +15,6 @@ except:
     from src.models.trainModel import TrainModel
     from src.models.helper.model import Network
     import src.models.helper.losses as losses
-import torch.nn as nn
-import os
-
-import pickle
 
 PATH = Path(os.getcwd() + os.path.normpath("/data/models"))
 

@@ -1,19 +1,17 @@
-import configparser
-import os
-import sys
-from os.path import exists
-
-from pathlib import Path
-
-from fastapi import FastAPI, Response, status, Request
-import numpy as np
-import uvicorn
-
 PACKAGE_PARENT = "../"
 SCRIPT_DIR = os.path.dirname(
     os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__)))
 )
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
+
+import configparser
+import os
+import sys
+import uvicorn
+import numpy as np
+from pathlib import Path
+from fastapi import FastAPI, Response, status, Request
+from os.path import exists
 
 try:
     from data.dataloader import DataLoader
@@ -33,6 +31,7 @@ except:
     from src.simulation.manufacturing import Manufacturing
     from src.models.deploy import DeployModel
     from src.schemas import DummyMachine
+
 
 app = FastAPI()
 config = configparser.ConfigParser()

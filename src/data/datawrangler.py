@@ -1,10 +1,10 @@
-from pathlib import Path
-from matplotlib import pyplot as plt
-import pandas as pd
 import os
+import re
 import concurrent.futures
 import time as tm
-import re
+import pandas as pd
+from pathlib import Path
+from matplotlib import pyplot as plt
 
 
 class DataWrangler:

@@ -1,22 +1,20 @@
-import os
-import sys
-from pathlib import Path
-from typing import Any, List
-
-import numpy as np
-from tqdm import tqdm
-
 PACKAGE_PARENT = "../"
 SCRIPT_DIR = os.path.dirname(
     os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__)))
 )
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
+
+import os
+import sys
+import numpy as np
+import pandas as pd
+from pathlib import Path
+from typing import List
+from tqdm import tqdm
 from src.simulation.manufacturing import Manufacturing
 from src.data.dataloader import DataLoader
 from src.simulation.machine import Machine
 from src.models.deploy import DeployModel
-
-import pandas as pd
 
 
 class ValidationCreate:
