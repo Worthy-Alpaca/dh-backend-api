@@ -29,7 +29,7 @@
 <pre><code class="python">import os
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 
 import numpy as np
 from tqdm import tqdm
@@ -52,44 +52,13 @@ class ValidationCreate:
         &#34;&#34;&#34;Used to create validation data.&#34;&#34;&#34;
         pass
 
-    def __call__(self, *args: Any, **kwds: Any) -&gt; None:
-        &#34;&#34;&#34;Run this to start the validation Process.&#34;&#34;&#34;
-        mList = [
-            {
-                &#34;machine&#34;: &#34;m10&#34;,
-                &#34;cph&#34;: 23000,
-                &#34;nozHeads&#34;: 6,
-                &#34;SMD&#34;: True,
-                &#34;offsets&#34;: {
-                    &#34;checkpoint&#34;: [30, -20],
-                    &#34;pcb&#34;: [0, 110],
-                    &#34;tools&#34;: [30, 6320],
-                    &#34;feedercarts&#34;: [
-                        {&#34;ST-FL&#34;: [160, 20]},
-                        {&#34;ST-RL&#34;: [160, 632]},
-                        {&#34;ST-FR&#34;: [&#34;0&#34;, &#34;0&#34;]},
-                        {&#34;ST-RR&#34;: [&#34;0&#34;, &#34;0&#34;]},
-                    ],
-                },
-            },
-            {
-                &#34;machine&#34;: &#34;m20&#34;,
-                &#34;cph&#34;: 19000,
-                &#34;nozHeads&#34;: 4,
-                &#34;SMD&#34;: True,
-                &#34;offsets&#34;: {
-                    &#34;checkpoint&#34;: [110, 40],
-                    &#34;pcb&#34;: [0, 70],
-                    &#34;tools&#34;: [600, 900],
-                    &#34;feedercarts&#34;: [
-                        {&#34;ST-FL&#34;: [200, 0]},
-                        {&#34;ST-RL&#34;: [200, 632]},
-                        {&#34;ST-FR&#34;: [&#34;-390&#34;, &#34;0&#34;]},
-                        {&#34;ST-RR&#34;: [&#34;-390&#34;, &#34;632&#34;]},
-                    ],
-                },
-            },
-        ]
+    def __call__(self, mList: List, usable_programms: List) -&gt; None:
+        &#34;&#34;&#34;Run this to start the validation Process.
+
+        Args:
+            mList (List): The list of machines to generate data for.
+            usable_programms (List): List of programms to be used for data generation.
+        &#34;&#34;&#34;
 
         for m in mList:
             df = pd.read_csv(
@@ -117,8 +86,7 @@ class ValidationCreate:
                     r&#34;C:\Users\stephan.schumacher\Documents\repos\dh-backend-api\data\models\FINAL MODEL&#34;
                 ),
             )
-            m10Data = []
-            # runsList = [&#34;2196821&#34;]
+            machineData = []
             print(f&#39;Creating validation Data for {m[&#34;machine&#34;]} &#39;)
             for productId in tqdm(runsList):
                 try:
@@ -142,11 +110,11 @@ class ValidationCreate:
                             data[0][&#34;Y&#34;].max() + offsets[1],
                         ]
                     )
-                    # predArray = np.array([0, 0, 0, 0])
+
                     predictedData = model.predict(predArray)
                     for i in range(150):
 
-                        m10Data.append(
+                        machineData.append(
                             (
                                 productId,
                                 &#34;Classic&#34;,
@@ -157,7 +125,7 @@ class ValidationCreate:
 
                         if predictedData == np.nan:
                             predictedData = [[0]]
-                        m10Data.append(
+                        machineData.append(
                             (
                                 productId,
                                 &#34;AI Model&#34;,
@@ -171,17 +139,17 @@ class ValidationCreate:
                     print(&#34;====== ERROR ======&#34;)
                     continue
 
-            m10Data = pd.DataFrame(
-                m10Data, columns=[&#34;Class&#34;, &#34;Type&#34;, &#34;Time&#34;, &#34;Placements&#34;]
+            machineData = pd.DataFrame(
+                machineData, columns=[&#34;Class&#34;, &#34;Type&#34;, &#34;Time&#34;, &#34;Placements&#34;]
             )
 
-            m10Data.to_csv(
+            machineData.to_csv(
                 os.getcwd()
                 + os.path.normpath(
                     f&#34;/data/all/validation/{m[&#39;machine&#39;]}DataFrame_generated.csv&#34;
                 ),
             )
-            df = pd.concat([df, m10Data], ignore_index=True)
+            df = pd.concat([df, machineData], ignore_index=True)
             df = df.sort_values(by=&#34;Class&#34;)
             df.to_csv(
                 os.getcwd()
@@ -388,7 +356,48 @@ if __name__ == &#34;__main__&#34;:
 
     new_programms = set(os.listdir(path))
 
-    usable_programms = list(new_programms.intersection(old_programms))</code></pre>
+    usable_programms = list(new_programms.intersection(old_programms))
+
+    mList = [
+        {
+            &#34;machine&#34;: &#34;m10&#34;,
+            &#34;cph&#34;: 23000,
+            &#34;nozHeads&#34;: 6,
+            &#34;SMD&#34;: True,
+            &#34;offsets&#34;: {
+                &#34;checkpoint&#34;: [30, -20],
+                &#34;pcb&#34;: [0, 110],
+                &#34;tools&#34;: [30, 6320],
+                &#34;feedercarts&#34;: [
+                    {&#34;ST-FL&#34;: [160, 20]},
+                    {&#34;ST-RL&#34;: [160, 632]},
+                    {&#34;ST-FR&#34;: [&#34;0&#34;, &#34;0&#34;]},
+                    {&#34;ST-RR&#34;: [&#34;0&#34;, &#34;0&#34;]},
+                ],
+            },
+        },
+        {
+            &#34;machine&#34;: &#34;m20&#34;,
+            &#34;cph&#34;: 19000,
+            &#34;nozHeads&#34;: 4,
+            &#34;SMD&#34;: True,
+            &#34;offsets&#34;: {
+                &#34;checkpoint&#34;: [110, 40],
+                &#34;pcb&#34;: [0, 70],
+                &#34;tools&#34;: [600, 900],
+                &#34;feedercarts&#34;: [
+                    {&#34;ST-FL&#34;: [200, 0]},
+                    {&#34;ST-RL&#34;: [200, 632]},
+                    {&#34;ST-FR&#34;: [&#34;-390&#34;, &#34;0&#34;]},
+                    {&#34;ST-RR&#34;: [&#34;-390&#34;, &#34;632&#34;]},
+                ],
+            },
+        },
+    ]
+
+    validationcreate = ValidationCreate()
+
+    validationcreate(mList, usable_programms)</code></pre>
 </details>
 </section>
 <section>
@@ -414,44 +423,13 @@ if __name__ == &#34;__main__&#34;:
         &#34;&#34;&#34;Used to create validation data.&#34;&#34;&#34;
         pass
 
-    def __call__(self, *args: Any, **kwds: Any) -&gt; None:
-        &#34;&#34;&#34;Run this to start the validation Process.&#34;&#34;&#34;
-        mList = [
-            {
-                &#34;machine&#34;: &#34;m10&#34;,
-                &#34;cph&#34;: 23000,
-                &#34;nozHeads&#34;: 6,
-                &#34;SMD&#34;: True,
-                &#34;offsets&#34;: {
-                    &#34;checkpoint&#34;: [30, -20],
-                    &#34;pcb&#34;: [0, 110],
-                    &#34;tools&#34;: [30, 6320],
-                    &#34;feedercarts&#34;: [
-                        {&#34;ST-FL&#34;: [160, 20]},
-                        {&#34;ST-RL&#34;: [160, 632]},
-                        {&#34;ST-FR&#34;: [&#34;0&#34;, &#34;0&#34;]},
-                        {&#34;ST-RR&#34;: [&#34;0&#34;, &#34;0&#34;]},
-                    ],
-                },
-            },
-            {
-                &#34;machine&#34;: &#34;m20&#34;,
-                &#34;cph&#34;: 19000,
-                &#34;nozHeads&#34;: 4,
-                &#34;SMD&#34;: True,
-                &#34;offsets&#34;: {
-                    &#34;checkpoint&#34;: [110, 40],
-                    &#34;pcb&#34;: [0, 70],
-                    &#34;tools&#34;: [600, 900],
-                    &#34;feedercarts&#34;: [
-                        {&#34;ST-FL&#34;: [200, 0]},
-                        {&#34;ST-RL&#34;: [200, 632]},
-                        {&#34;ST-FR&#34;: [&#34;-390&#34;, &#34;0&#34;]},
-                        {&#34;ST-RR&#34;: [&#34;-390&#34;, &#34;632&#34;]},
-                    ],
-                },
-            },
-        ]
+    def __call__(self, mList: List, usable_programms: List) -&gt; None:
+        &#34;&#34;&#34;Run this to start the validation Process.
+
+        Args:
+            mList (List): The list of machines to generate data for.
+            usable_programms (List): List of programms to be used for data generation.
+        &#34;&#34;&#34;
 
         for m in mList:
             df = pd.read_csv(
@@ -479,8 +457,7 @@ if __name__ == &#34;__main__&#34;:
                     r&#34;C:\Users\stephan.schumacher\Documents\repos\dh-backend-api\data\models\FINAL MODEL&#34;
                 ),
             )
-            m10Data = []
-            # runsList = [&#34;2196821&#34;]
+            machineData = []
             print(f&#39;Creating validation Data for {m[&#34;machine&#34;]} &#39;)
             for productId in tqdm(runsList):
                 try:
@@ -504,11 +481,11 @@ if __name__ == &#34;__main__&#34;:
                             data[0][&#34;Y&#34;].max() + offsets[1],
                         ]
                     )
-                    # predArray = np.array([0, 0, 0, 0])
+
                     predictedData = model.predict(predArray)
                     for i in range(150):
 
-                        m10Data.append(
+                        machineData.append(
                             (
                                 productId,
                                 &#34;Classic&#34;,
@@ -519,7 +496,7 @@ if __name__ == &#34;__main__&#34;:
 
                         if predictedData == np.nan:
                             predictedData = [[0]]
-                        m10Data.append(
+                        machineData.append(
                             (
                                 productId,
                                 &#34;AI Model&#34;,
@@ -533,17 +510,17 @@ if __name__ == &#34;__main__&#34;:
                     print(&#34;====== ERROR ======&#34;)
                     continue
 
-            m10Data = pd.DataFrame(
-                m10Data, columns=[&#34;Class&#34;, &#34;Type&#34;, &#34;Time&#34;, &#34;Placements&#34;]
+            machineData = pd.DataFrame(
+                machineData, columns=[&#34;Class&#34;, &#34;Type&#34;, &#34;Time&#34;, &#34;Placements&#34;]
             )
 
-            m10Data.to_csv(
+            machineData.to_csv(
                 os.getcwd()
                 + os.path.normpath(
                     f&#34;/data/all/validation/{m[&#39;machine&#39;]}DataFrame_generated.csv&#34;
                 ),
             )
-            df = pd.concat([df, m10Data], ignore_index=True)
+            df = pd.concat([df, machineData], ignore_index=True)
             df = df.sort_values(by=&#34;Class&#34;)
             df.to_csv(
                 os.getcwd()

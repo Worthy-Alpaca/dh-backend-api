@@ -80,7 +80,7 @@ class Tuner:
             direction=direction,
             sampler=sampler(),
             pruner=pruner(),
-            storage=&#34;sqlite:///50Studies_new.db&#34;,
+            storage=&#34;sqlite:///50Studies_p4.db&#34;,
         )
 
     def optimize(
@@ -102,7 +102,7 @@ class Tuner:
             self.__objective,
             n_trials=n_trials,
             catch=(RuntimeError, RuntimeWarning, TypeError, ValueError),
-            callbacks=[self.logging_callback],
+            callbacks=[self.__logging_callback],
         )
 
         return self.study.best_trial
@@ -122,7 +122,7 @@ class Tuner:
         params = {
             &#34;n_layers&#34;: trial.suggest_int(&#34;n_layers&#34;, 1, 5),
             &#34;n_units_layers&#34;: [],
-            &#34;learning_rate&#34;: trial.suggest_loguniform(&#34;learning_rate&#34;, 1e-6, 9e-1),
+            &#34;learning_rate&#34;: trial.suggest_loguniform(&#34;learning_rate&#34;, 1e-6, 9e-3),
             &#34;optimizer&#34;: trial.suggest_categorical(
                 &#34;optimizer&#34;,
                 [&#34;Adamax&#34;],  # &#34;ASGD&#34;, &#34;Adam&#34;, &#34;Adamax&#34;]
@@ -131,20 +131,20 @@ class Tuner:
             &#34;loss_function&#34;: trial.suggest_categorical(
                 &#34;loss_function&#34;,
                 [
-                    &#34;FocalTverskyLoss&#34;,
+                    # &#34;FocalTverskyLoss&#34;,
                     # &#34;TverskyLoss&#34;,
                     # &#34;L1Loss&#34;,
-                    &#34;MSELoss&#34;,
+                    # &#34;MSELoss&#34;,
                     &#34;HuberLoss&#34;,
                 ],
             ),
             &#34;activation&#34;: trial.suggest_categorical(
-                &#34;activation&#34;, [&#34;Sigmoid&#34;, &#34;GELU&#34;]  # [&#34;ReLU&#34;, &#34;Sigmoid&#34;, &#34;ELU&#34;]
+                &#34;activation&#34;, [&#34;Sigmoid&#34;]  # [&#34;ReLU&#34;, &#34;Sigmoid&#34;, &#34;ELU&#34;]
             ),
             &#34;batch_size&#34;: trial.suggest_int(&#34;batch_size&#34;, 50, 70),
             &#34;weight_decay&#34;: trial.suggest_loguniform(&#34;weight_decay&#34;, 9e-5, 9e-2),
             &#34;dampening&#34;: trial.suggest_loguniform(&#34;dampening&#34;, 1e-1, 7e-1),
-            &#34;momentum&#34;: trial.suggest_loguniform(&#34;momentum&#34;, 1e-1, 7e-1),
+            &#34;momentum&#34;: trial.suggest_loguniform(&#34;momentum&#34;, 2e-1, 4e-1),
             &#34;dropout&#34;: trial.suggest_loguniform(&#34;dropout&#34;, 0.2, 0.5),
         }
 
@@ -247,7 +247,7 @@ class Tuner:
             params (optuna.trial.FrozenTrial): The best trial as determined by optuna
             path (Path, optional): Path to saving location. Defaults to PATH.
         &#34;&#34;&#34;
-        pathway = Path(os.getcwd() + &#34;/data/models/bestTrial&#34;)
+        pathway = Path(os.getcwd() + &#34;/data/models/bestTrial5&#34;)
         if not exists(pathway):
             os.mkdir(pathway)
         self.trainModel.saveInternalStates(pathway)
@@ -258,18 +258,39 @@ class Tuner:
             pickle.dump(params, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
     def saveStudy(self, path: Path):
+        &#34;&#34;&#34;Saves the study to the provided path.
+
+        Args:
+            path (Path): Path to saving location.
+        &#34;&#34;&#34;
         if not exists(path):
             os.mkdir(path)
         with open(path / f&#34;{self.study.study_name}.p&#34;, &#34;wb&#34;) as fp:
             print(f&#34;Saving Study with Name: {self.study.study_name}&#34;)
             pickle.dump(self.study, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
-    def loadStudy(self, path: Path):
+    def loadStudy(self, path: Path) -&gt; optuna.study.Study:
+        &#34;&#34;&#34;Load a study from the provided location.
+
+        Args:
+            path (Path): The location of the study.
+
+        Returns:
+            optuna.study.Study: The loaded study.
+        &#34;&#34;&#34;
         with open(path, &#34;rb&#34;) as file:
             data = pickle.load(file)
         return data
 
-    def logging_callback(self, study, frozen_trial):
+    def __logging_callback(
+        self, study: optuna.study.Study, frozen_trial: optuna.trial.FrozenTrial
+    ):
+        &#34;&#34;&#34;Internal method used to save the current best trial.
+
+        Args:
+            study (optuna.study.Study): The current study.
+            frozen_trial (optuna.trial.FrozenTrial): The current best trial.
+        &#34;&#34;&#34;
         previous_best_value = study.user_attrs.get(&#34;previous_best_value&#34;, None)
         if previous_best_value != study.best_value:
             study.set_user_attr(&#34;previous_best_value&#34;, study.best_value)
@@ -288,7 +309,7 @@ if __name__ == &#34;__main__&#34;:
 
     DATA_PATH = Path(os.getcwd() + os.path.normpath(&#34;/data/all/trainDataTogether.csv&#34;))
     STUDY_PATH = Path(
-        os.getcwd() + os.path.normpath(&#34;/data/model/studies/50TrialsScaled&#34;)
+        os.getcwd() + os.path.normpath(&#34;/data/model/studies/5TrialsScaled&#34;)
     )
     STUDY_LOAD = Path(
         os.getcwd() + os.path.normpath(r&#34;\data\model\studies\50trialsScaled.p&#34;)
@@ -318,7 +339,7 @@ if __name__ == &#34;__main__&#34;:
         &#34;n_units_l1&#34;: 20,
         &#34;n_units_l2&#34;: 14,
     }
-    tuner.tuneModel(best_trial.params, None, True)</code></pre>
+    # tuner.tuneModel(best_trial.params, None, True)</code></pre>
 </details>
 </section>
 <section>
@@ -388,7 +409,7 @@ if __name__ == &#34;__main__&#34;:
             direction=direction,
             sampler=sampler(),
             pruner=pruner(),
-            storage=&#34;sqlite:///50Studies_new.db&#34;,
+            storage=&#34;sqlite:///50Studies_p4.db&#34;,
         )
 
     def optimize(
@@ -410,7 +431,7 @@ if __name__ == &#34;__main__&#34;:
             self.__objective,
             n_trials=n_trials,
             catch=(RuntimeError, RuntimeWarning, TypeError, ValueError),
-            callbacks=[self.logging_callback],
+            callbacks=[self.__logging_callback],
         )
 
         return self.study.best_trial
@@ -430,7 +451,7 @@ if __name__ == &#34;__main__&#34;:
         params = {
             &#34;n_layers&#34;: trial.suggest_int(&#34;n_layers&#34;, 1, 5),
             &#34;n_units_layers&#34;: [],
-            &#34;learning_rate&#34;: trial.suggest_loguniform(&#34;learning_rate&#34;, 1e-6, 9e-1),
+            &#34;learning_rate&#34;: trial.suggest_loguniform(&#34;learning_rate&#34;, 1e-6, 9e-3),
             &#34;optimizer&#34;: trial.suggest_categorical(
                 &#34;optimizer&#34;,
                 [&#34;Adamax&#34;],  # &#34;ASGD&#34;, &#34;Adam&#34;, &#34;Adamax&#34;]
@@ -439,20 +460,20 @@ if __name__ == &#34;__main__&#34;:
             &#34;loss_function&#34;: trial.suggest_categorical(
                 &#34;loss_function&#34;,
                 [
-                    &#34;FocalTverskyLoss&#34;,
+                    # &#34;FocalTverskyLoss&#34;,
                     # &#34;TverskyLoss&#34;,
                     # &#34;L1Loss&#34;,
-                    &#34;MSELoss&#34;,
+                    # &#34;MSELoss&#34;,
                     &#34;HuberLoss&#34;,
                 ],
             ),
             &#34;activation&#34;: trial.suggest_categorical(
-                &#34;activation&#34;, [&#34;Sigmoid&#34;, &#34;GELU&#34;]  # [&#34;ReLU&#34;, &#34;Sigmoid&#34;, &#34;ELU&#34;]
+                &#34;activation&#34;, [&#34;Sigmoid&#34;]  # [&#34;ReLU&#34;, &#34;Sigmoid&#34;, &#34;ELU&#34;]
             ),
             &#34;batch_size&#34;: trial.suggest_int(&#34;batch_size&#34;, 50, 70),
             &#34;weight_decay&#34;: trial.suggest_loguniform(&#34;weight_decay&#34;, 9e-5, 9e-2),
             &#34;dampening&#34;: trial.suggest_loguniform(&#34;dampening&#34;, 1e-1, 7e-1),
-            &#34;momentum&#34;: trial.suggest_loguniform(&#34;momentum&#34;, 1e-1, 7e-1),
+            &#34;momentum&#34;: trial.suggest_loguniform(&#34;momentum&#34;, 2e-1, 4e-1),
             &#34;dropout&#34;: trial.suggest_loguniform(&#34;dropout&#34;, 0.2, 0.5),
         }
 
@@ -555,7 +576,7 @@ if __name__ == &#34;__main__&#34;:
             params (optuna.trial.FrozenTrial): The best trial as determined by optuna
             path (Path, optional): Path to saving location. Defaults to PATH.
         &#34;&#34;&#34;
-        pathway = Path(os.getcwd() + &#34;/data/models/bestTrial&#34;)
+        pathway = Path(os.getcwd() + &#34;/data/models/bestTrial5&#34;)
         if not exists(pathway):
             os.mkdir(pathway)
         self.trainModel.saveInternalStates(pathway)
@@ -566,18 +587,39 @@ if __name__ == &#34;__main__&#34;:
             pickle.dump(params, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
     def saveStudy(self, path: Path):
+        &#34;&#34;&#34;Saves the study to the provided path.
+
+        Args:
+            path (Path): Path to saving location.
+        &#34;&#34;&#34;
         if not exists(path):
             os.mkdir(path)
         with open(path / f&#34;{self.study.study_name}.p&#34;, &#34;wb&#34;) as fp:
             print(f&#34;Saving Study with Name: {self.study.study_name}&#34;)
             pickle.dump(self.study, fp, protocol=pickle.HIGHEST_PROTOCOL)
 
-    def loadStudy(self, path: Path):
+    def loadStudy(self, path: Path) -&gt; optuna.study.Study:
+        &#34;&#34;&#34;Load a study from the provided location.
+
+        Args:
+            path (Path): The location of the study.
+
+        Returns:
+            optuna.study.Study: The loaded study.
+        &#34;&#34;&#34;
         with open(path, &#34;rb&#34;) as file:
             data = pickle.load(file)
         return data
 
-    def logging_callback(self, study, frozen_trial):
+    def __logging_callback(
+        self, study: optuna.study.Study, frozen_trial: optuna.trial.FrozenTrial
+    ):
+        &#34;&#34;&#34;Internal method used to save the current best trial.
+
+        Args:
+            study (optuna.study.Study): The current study.
+            frozen_trial (optuna.trial.FrozenTrial): The current best trial.
+        &#34;&#34;&#34;
         previous_best_value = study.user_attrs.get(&#34;previous_best_value&#34;, None)
         if previous_best_value != study.best_value:
             study.set_user_attr(&#34;previous_best_value&#34;, study.best_value)
@@ -593,41 +635,36 @@ if __name__ == &#34;__main__&#34;:
 <h3>Methods</h3>
 <dl>
 <dt id="src.models.tuner.Tuner.loadStudy"><code class="name flex">
-<span>def <span class="ident">loadStudy</span></span>(<span>self, path: pathlib.Path)</span>
+<span>def <span class="ident">loadStudy</span></span>(<span>self, path: pathlib.Path) ‑> optuna.study.study.Study</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Load a study from the provided location.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>Path</code></dt>
+<dd>The location of the study.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>optuna.study.Study</code></dt>
+<dd>The loaded study.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def loadStudy(self, path: Path):
+<pre><code class="python">def loadStudy(self, path: Path) -&gt; optuna.study.Study:
+    &#34;&#34;&#34;Load a study from the provided location.
+
+    Args:
+        path (Path): The location of the study.
+
+    Returns:
+        optuna.study.Study: The loaded study.
+    &#34;&#34;&#34;
     with open(path, &#34;rb&#34;) as file:
         data = pickle.load(file)
     return data</code></pre>
-</details>
-</dd>
-<dt id="src.models.tuner.Tuner.logging_callback"><code class="name flex">
-<span>def <span class="ident">logging_callback</span></span>(<span>self, study, frozen_trial)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def logging_callback(self, study, frozen_trial):
-    previous_best_value = study.user_attrs.get(&#34;previous_best_value&#34;, None)
-    if previous_best_value != study.best_value:
-        study.set_user_attr(&#34;previous_best_value&#34;, study.best_value)
-        print(
-            &#34;Trial {} finished with best value: {} and parameters: {}. &#34;.format(
-                frozen_trial.number,
-                frozen_trial.value,
-                frozen_trial.params,
-            )
-        )
-        self.saveBestTrial(frozen_trial.params)</code></pre>
 </details>
 </dd>
 <dt id="src.models.tuner.Tuner.optimize"><code class="name flex">
@@ -668,7 +705,7 @@ if __name__ == &#34;__main__&#34;:
         self.__objective,
         n_trials=n_trials,
         catch=(RuntimeError, RuntimeWarning, TypeError, ValueError),
-        callbacks=[self.logging_callback],
+        callbacks=[self.__logging_callback],
     )
 
     return self.study.best_trial</code></pre>
@@ -697,7 +734,7 @@ if __name__ == &#34;__main__&#34;:
         params (optuna.trial.FrozenTrial): The best trial as determined by optuna
         path (Path, optional): Path to saving location. Defaults to PATH.
     &#34;&#34;&#34;
-    pathway = Path(os.getcwd() + &#34;/data/models/bestTrial&#34;)
+    pathway = Path(os.getcwd() + &#34;/data/models/bestTrial5&#34;)
     if not exists(pathway):
         os.mkdir(pathway)
     self.trainModel.saveInternalStates(pathway)
@@ -712,12 +749,22 @@ if __name__ == &#34;__main__&#34;:
 <span>def <span class="ident">saveStudy</span></span>(<span>self, path: pathlib.Path)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Saves the study to the provided path.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>Path</code></dt>
+<dd>Path to saving location.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def saveStudy(self, path: Path):
+    &#34;&#34;&#34;Saves the study to the provided path.
+
+    Args:
+        path (Path): Path to saving location.
+    &#34;&#34;&#34;
     if not exists(path):
         os.mkdir(path)
     with open(path / f&#34;{self.study.study_name}.p&#34;, &#34;wb&#34;) as fp:
@@ -726,7 +773,7 @@ if __name__ == &#34;__main__&#34;:
 </details>
 </dd>
 <dt id="src.models.tuner.Tuner.tuneModel"><code class="name flex">
-<span>def <span class="ident">tuneModel</span></span>(<span>self, params: dict, trial: <module 'optuna.trial' from 'C:\\Users\\stephan.schumacher\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\optuna\\trial\\__init__.py'> = None, saveState: bool = False) ‑> tuple[typing.Union[<built-in method tensor of type object at 0x00007FFBCDB1E7F0>, float], typing.Union[torch.Tensor, float]]</span>
+<span>def <span class="ident">tuneModel</span></span>(<span>self, params: dict, trial: <module 'optuna.trial' from 'C:\\Users\\stephan.schumacher\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\optuna\\trial\\__init__.py'> = None, saveState: bool = False) ‑> tuple[typing.Union[<built-in method tensor of type object at 0x00007FFC39E8E7F0>, float], typing.Union[torch.Tensor, float]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Tunes the model accoring to objective parameters.</p>
@@ -849,9 +896,8 @@ float]</code></dt>
 <ul>
 <li>
 <h4><code><a title="src.models.tuner.Tuner" href="#src.models.tuner.Tuner">Tuner</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="src.models.tuner.Tuner.loadStudy" href="#src.models.tuner.Tuner.loadStudy">loadStudy</a></code></li>
-<li><code><a title="src.models.tuner.Tuner.logging_callback" href="#src.models.tuner.Tuner.logging_callback">logging_callback</a></code></li>
 <li><code><a title="src.models.tuner.Tuner.optimize" href="#src.models.tuner.Tuner.optimize">optimize</a></code></li>
 <li><code><a title="src.models.tuner.Tuner.saveBestTrial" href="#src.models.tuner.Tuner.saveBestTrial">saveBestTrial</a></code></li>
 <li><code><a title="src.models.tuner.Tuner.saveStudy" href="#src.models.tuner.Tuner.saveStudy">saveStudy</a></code></li>
