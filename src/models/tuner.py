@@ -116,7 +116,7 @@ class Tuner:
             "batch_size": trial.suggest_int("batch_size", 50, 70),
             "weight_decay": trial.suggest_loguniform("weight_decay", 9e-5, 9e-2),
             "dampening": trial.suggest_loguniform("dampening", 1e-1, 7e-1),
-            "momentum": trial.suggest_loguniform("momentum", 25e-1, 4e-1),
+            "momentum": trial.suggest_loguniform("momentum", 2e-1, 4e-1),
             "dropout": trial.suggest_loguniform("dropout", 0.2, 0.5),
         }
 
