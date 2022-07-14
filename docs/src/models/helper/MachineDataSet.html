@@ -27,23 +27,22 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import torch
-from torch.utils.data import Dataset
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
-from sklearn.model_selection import train_test_split
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import pyplot
-import pandas as pd
-from pathlib import Path
-import os
+from torch.utils.data import Dataset
 
 
 class MachineDataSet(Dataset):
     def __init__(
         self,
-        X,
-        y,
+        X: np.ndarray,
+        y: np.ndarray,
     ) -&gt; None:
+        &#34;&#34;&#34;Initiate a Dataset for the Neural Network.
+
+        Args:
+            X (np.ndarray): The Datapoints for X.
+            y (np.ndarray): The Datapoints for Y.
+        &#34;&#34;&#34;
         if not torch.is_tensor(X) and not torch.is_tensor(y):
             self.X = torch.from_numpy(X)
             self.y = torch.from_numpy(y)
@@ -55,45 +54,7 @@ class MachineDataSet(Dataset):
         return len(self.X)
 
     def __getitem__(self, index: any):
-        return self.X[index], self.y[index]
-
-
-if __name__ == &#34;__main__&#34;:
-    dataPath = Path(
-        os.getcwd()
-        + os.path.normpath(&#34;/data/logs/combined/machine_timings_combined.csv&#34;)
-    )
-    df = pd.read_csv(
-        dataPath,
-        low_memory=False,
-        encoding=&#34;unicode_escape&#34;,
-    )
-    df = df[[&#34;placementsNeeded&#34;, &#34;heads&#34;, &#34;cph&#34;, &#34;machine&#34;, &#34;timeNeeded&#34;]]
-
-    df[[&#34;placementsNeeded&#34;, &#34;heads&#34;, &#34;cph&#34;, &#34;timeNeeded&#34;]] = df[
-        [&#34;placementsNeeded&#34;, &#34;heads&#34;, &#34;cph&#34;, &#34;timeNeeded&#34;]
-    ].astype(int)
-
-    def encode(x):
-        if x == &#34;m10&#34;:
-            return 0
-        else:
-            return 1
-
-    df[&#34;machine&#34;] = df[&#34;machine&#34;].apply(lambda x: encode(x))
-
-    x = df.drop([&#34;timeNeeded&#34;, &#34;cph&#34;], axis=1)
-
-    y = df[[&#34;timeNeeded&#34;, &#34;cph&#34;]]
-
-    data = x.to_numpy(dtype=np.float32)
-    labels = y.to_numpy(dtype=np.float32)
-
-    x_train, x_test, y_train, y_test = train_test_split(
-        data, labels, test_size=0.2, random_state=42
-    )
-
-    MachineDataSet(x_train, y_train)</code></pre>
+        return self.X[index], self.y[index]</code></pre>
 </details>
 </section>
 <section>
@@ -107,7 +68,7 @@ if __name__ == &#34;__main__&#34;:
 <dl>
 <dt id="src.models.helper.MachineDataSet.MachineDataSet"><code class="flex name class">
 <span>class <span class="ident">MachineDataSet</span></span>
-<span>(</span><span>X, y)</span>
+<span>(</span><span>X: numpy.ndarray, y: numpy.ndarray)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>An abstract class representing a :class:<code>Dataset</code>.</p>
@@ -123,7 +84,15 @@ of :class:<code>~torch.utils.data.DataLoader</code>.</p>
 sampler that yields integral indices.
 To make it work with a map-style
 dataset with non-integral indices/keys, a custom sampler must be provided.</p>
-</div></div>
+</div>
+<p>Initiate a Dataset for the Neural Network.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>The Datapoints for X.</dd>
+<dt><strong><code>y</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>The Datapoints for Y.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -131,9 +100,15 @@ dataset with non-integral indices/keys, a custom sampler must be provided.</p>
 <pre><code class="python">class MachineDataSet(Dataset):
     def __init__(
         self,
-        X,
-        y,
+        X: np.ndarray,
+        y: np.ndarray,
     ) -&gt; None:
+        &#34;&#34;&#34;Initiate a Dataset for the Neural Network.
+
+        Args:
+            X (np.ndarray): The Datapoints for X.
+            y (np.ndarray): The Datapoints for Y.
+        &#34;&#34;&#34;
         if not torch.is_tensor(X) and not torch.is_tensor(y):
             self.X = torch.from_numpy(X)
             self.y = torch.from_numpy(y)

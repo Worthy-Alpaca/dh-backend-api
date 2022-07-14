@@ -26,13 +26,14 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from pathlib import Path
-from os.path import exists
-from typing import Any, Literal, Union
-import numpy as np
-
-import torch
+<pre><code class="python">import torch
 import optuna
+import os
+import pickle
+import torch.nn as nn
+from pathlib import Path
+from typing import Literal, Union
+from os.path import exists
 
 try:
     from trainModel import TrainModel
@@ -42,10 +43,6 @@ except:
     from src.models.trainModel import TrainModel
     from src.models.helper.model import Network
     import src.models.helper.losses as losses
-import torch.nn as nn
-import os
-
-import pickle
 
 PATH = Path(os.getcwd() + os.path.normpath(&#34;/data/models&#34;))
 
@@ -773,7 +770,7 @@ if __name__ == &#34;__main__&#34;:
 </details>
 </dd>
 <dt id="src.models.tuner.Tuner.tuneModel"><code class="name flex">
-<span>def <span class="ident">tuneModel</span></span>(<span>self, params: dict, trial: <module 'optuna.trial' from 'C:\\Users\\stephan.schumacher\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\optuna\\trial\\__init__.py'> = None, saveState: bool = False) ‑> tuple[typing.Union[<built-in method tensor of type object at 0x00007FFC39E8E7F0>, float], typing.Union[torch.Tensor, float]]</span>
+<span>def <span class="ident">tuneModel</span></span>(<span>self, params: dict, trial: <module 'optuna.trial' from 'C:\\Users\\stephan.schumacher\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\optuna\\trial\\__init__.py'> = None, saveState: bool = False) ‑> tuple[typing.Union[<built-in method tensor of type object at 0x00007FFC3CDCE7F0>, float], typing.Union[torch.Tensor, float]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Tunes the model accoring to objective parameters.</p>

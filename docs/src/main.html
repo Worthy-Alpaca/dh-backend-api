@@ -29,13 +29,11 @@
 <pre><code class="python">import configparser
 import os
 import sys
-from os.path import exists
-
-from pathlib import Path
-
-from fastapi import FastAPI, Response, status, Request
-import numpy as np
 import uvicorn
+import numpy as np
+from pathlib import Path
+from fastapi import FastAPI, Response, status, Request
+from os.path import exists
 
 PACKAGE_PARENT = &#34;../&#34;
 SCRIPT_DIR = os.path.dirname(
@@ -61,6 +59,7 @@ except:
     from src.simulation.manufacturing import Manufacturing
     from src.models.deploy import DeployModel
     from src.schemas import DummyMachine
+
 
 app = FastAPI()
 config = configparser.ConfigParser()
