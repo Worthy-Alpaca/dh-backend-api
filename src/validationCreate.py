@@ -53,9 +53,7 @@ class ValidationCreate:
 
             dummyMachine = DummyMachine(m)
             model = DeployModel(
-                Path(
-                    r"C:\Users\stephan.schumacher\Documents\repos\dh-backend-api\data\models\FINAL MODEL"
-                ),
+                Path(os.getcwd() + os.path.normpath("\data\models\FINAL MODEL")),
             )
             machineData = []
             print(f'Creating validation Data for {m["machine"]} ')
