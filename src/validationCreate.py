@@ -5,16 +5,17 @@ import pandas as pd
 from pathlib import Path
 from typing import List
 from tqdm import tqdm
-from src.simulation.manufacturing import Manufacturing
-from src.data.dataloader import DataLoader
-from src.simulation.machine import Machine
-from src.models.deploy import DeployModel
 
 PACKAGE_PARENT = "../"
 SCRIPT_DIR = os.path.dirname(
     os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__)))
 )
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
+
+from src.simulation.manufacturing import Manufacturing
+from src.data.dataloader import DataLoader
+from src.simulation.machine import Machine
+from src.models.deploy import DeployModel
 
 
 class ValidationCreate:
@@ -74,7 +75,7 @@ class ValidationCreate:
                     simulationData = manufacturing(plotPCB=False, useIdealState=True)
                     predArray = np.array(
                         [
-                            len(data[0]),
+                            len(data[0]) * len(data[2]),
                             0 if machine.machineName == "m10" else 1,
                             data[0]["X"].max() + offsets[0],
                             data[0]["Y"].max() + offsets[1],
@@ -116,14 +117,16 @@ class ValidationCreate:
             machineData.to_csv(
                 os.getcwd()
                 + os.path.normpath(
-                    f"/data/all/validation/{m['machine']}DataFrame_generated.csv"
+                    f"/data/all/validation/{m['machine']}DataFrame_generated_2.csv"
                 ),
             )
             df = pd.concat([df, machineData], ignore_index=True)
             df = df.sort_values(by="Class")
             df.to_csv(
                 os.getcwd()
-                + os.path.normpath(f"/data/all/validation/{m['machine']}DataFrame.csv"),
+                + os.path.normpath(
+                    f"/data/all/validation/{m['machine']}DataFrame_2.csv"
+                ),
             )
 
 
