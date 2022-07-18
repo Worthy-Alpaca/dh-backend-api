@@ -81,9 +81,7 @@ class ValidationCreate:
 
             dummyMachine = DummyMachine(m)
             model = DeployModel(
-                Path(
-                    r&#34;C:\Users\stephan.schumacher\Documents\repos\dh-backend-api\data\models\FINAL MODEL&#34;
-                ),
+                Path(os.getcwd() + os.path.normpath(&#34;\data\models\FINAL MODEL&#34;)),
             )
             machineData = []
             print(f&#39;Creating validation Data for {m[&#34;machine&#34;]} &#39;)
@@ -454,9 +452,7 @@ if __name__ == &#34;__main__&#34;:
 
             dummyMachine = DummyMachine(m)
             model = DeployModel(
-                Path(
-                    r&#34;C:\Users\stephan.schumacher\Documents\repos\dh-backend-api\data\models\FINAL MODEL&#34;
-                ),
+                Path(os.getcwd() + os.path.normpath(&#34;\data\models\FINAL MODEL&#34;)),
             )
             machineData = []
             print(f&#39;Creating validation Data for {m[&#34;machine&#34;]} &#39;)
