@@ -33,16 +33,17 @@ import pandas as pd
 from pathlib import Path
 from typing import List
 from tqdm import tqdm
-from src.simulation.manufacturing import Manufacturing
-from src.data.dataloader import DataLoader
-from src.simulation.machine import Machine
-from src.models.deploy import DeployModel
 
 PACKAGE_PARENT = &#34;../&#34;
 SCRIPT_DIR = os.path.dirname(
     os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__)))
 )
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
+
+from src.simulation.manufacturing import Manufacturing
+from src.data.dataloader import DataLoader
+from src.simulation.machine import Machine
+from src.models.deploy import DeployModel
 
 
 class ValidationCreate:
@@ -102,7 +103,7 @@ class ValidationCreate:
                     simulationData = manufacturing(plotPCB=False, useIdealState=True)
                     predArray = np.array(
                         [
-                            len(data[0]),
+                            len(data[0]) * len(data[2]),
                             0 if machine.machineName == &#34;m10&#34; else 1,
                             data[0][&#34;X&#34;].max() + offsets[0],
                             data[0][&#34;Y&#34;].max() + offsets[1],
@@ -144,14 +145,16 @@ class ValidationCreate:
             machineData.to_csv(
                 os.getcwd()
                 + os.path.normpath(
-                    f&#34;/data/all/validation/{m[&#39;machine&#39;]}DataFrame_generated.csv&#34;
+                    f&#34;/data/all/validation/{m[&#39;machine&#39;]}DataFrame_generated_2.csv&#34;
                 ),
             )
             df = pd.concat([df, machineData], ignore_index=True)
             df = df.sort_values(by=&#34;Class&#34;)
             df.to_csv(
                 os.getcwd()
-                + os.path.normpath(f&#34;/data/all/validation/{m[&#39;machine&#39;]}DataFrame.csv&#34;),
+                + os.path.normpath(
+                    f&#34;/data/all/validation/{m[&#39;machine&#39;]}DataFrame_2.csv&#34;
+                ),
             )
 
 
@@ -473,7 +476,7 @@ if __name__ == &#34;__main__&#34;:
                     simulationData = manufacturing(plotPCB=False, useIdealState=True)
                     predArray = np.array(
                         [
-                            len(data[0]),
+                            len(data[0]) * len(data[2]),
                             0 if machine.machineName == &#34;m10&#34; else 1,
                             data[0][&#34;X&#34;].max() + offsets[0],
                             data[0][&#34;Y&#34;].max() + offsets[1],
@@ -515,14 +518,16 @@ if __name__ == &#34;__main__&#34;:
             machineData.to_csv(
                 os.getcwd()
                 + os.path.normpath(
-                    f&#34;/data/all/validation/{m[&#39;machine&#39;]}DataFrame_generated.csv&#34;
+                    f&#34;/data/all/validation/{m[&#39;machine&#39;]}DataFrame_generated_2.csv&#34;
                 ),
             )
             df = pd.concat([df, machineData], ignore_index=True)
             df = df.sort_values(by=&#34;Class&#34;)
             df.to_csv(
                 os.getcwd()
-                + os.path.normpath(f&#34;/data/all/validation/{m[&#39;machine&#39;]}DataFrame.csv&#34;),
+                + os.path.normpath(
+                    f&#34;/data/all/validation/{m[&#39;machine&#39;]}DataFrame_2.csv&#34;
+                ),
             )</code></pre>
 </details>
 </dd>

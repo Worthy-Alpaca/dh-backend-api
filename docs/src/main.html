@@ -148,7 +148,7 @@ def startSimulation(
         )
         predArray = np.array(
             [
-                len(data[0]),
+                len(data[0] * len(data[2])),
                 0 if machine.machineName == &#34;m10&#34; else 1,
                 data[0][&#34;X&#34;].max() + offsets[0],
                 data[0][&#34;Y&#34;].max() + offsets[1],
@@ -372,7 +372,7 @@ def startSimulation(
         )
         predArray = np.array(
             [
-                len(data[0]),
+                len(data[0] * len(data[2])),
                 0 if machine.machineName == &#34;m10&#34; else 1,
                 data[0][&#34;X&#34;].max() + offsets[0],
                 data[0][&#34;Y&#34;].max() + offsets[1],
