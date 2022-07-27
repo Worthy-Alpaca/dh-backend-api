@@ -1,6 +1,8 @@
 import os
+import sqlalchemy
 import pandas as pd
 from pathlib import Path
+from sqlalchemy import create_engine
 
 
 class DataLoader:
@@ -171,9 +173,36 @@ class DataLoader:
         return (data, components, offsetlist)
 
 
+class DataBaseLoader:
+    def __init__(
+        self, dataBase: sqlalchemy.engine.base.Engine, product: str, machine: str
+    ) -> None:
+        """Load the required Data from the ``products.db`` database.
+
+        Args:
+            dataBase (sqlalchemy.engine.base.Engine): The current database connection.
+            product (str): The current product name.
+            machine (str): The current machine name.
+        """
+        with dataBase.begin() as connection:
+            tableName = f"{product}_{machine}_data"
+            self.data = pd.read_sql_table(tableName, connection)
+            tableName = f"{product}_{machine}_components"
+            self.components = pd.read_sql_table(tableName, connection)
+            tableName = f"{product}_{machine}_offsets"
+            offsets = pd.read_sql_table(tableName, connection)
+            offsetList = []
+            for i, r in offsets.iterrows():
+                currentOffset = (r.x, r.y)
+                offsetList.append(currentOffset)
+            self.offsets = offsetList
+
+    def __call__(self):
+        return (self.data, self.components, self.offsets)
+
+
 if __name__ == "__main__":
-    path = Path(os.getcwd() + os.path.normpath("/data/24aarab"))
-    dataloader = DataLoader(path, separator=",")
-    data = dataloader()
-    FL = data[1]  # .loc[data[1]['FeedStyle'] == 'ST-FL']
-    FL  # .duplicated()
+    engine = create_engine("sqlite:///products.db", echo=False)
+    data = DataBaseLoader(engine, "24AARAB", "m20")
+    data, components, offsets = data()
+    print()
