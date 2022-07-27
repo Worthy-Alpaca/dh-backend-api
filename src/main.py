@@ -4,6 +4,7 @@ import sys
 import uvicorn
 import numpy as np
 from pathlib import Path
+from sqlalchemy import create_engine
 from fastapi import FastAPI, Response, status, Request
 from os.path import exists
 
@@ -14,7 +15,7 @@ SCRIPT_DIR = os.path.dirname(
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 
 try:
-    from data.dataloader import DataLoader
+    from data.dataloader import DataLoader, DataBaseLoader
     from data.datawrangler import MachineDataLoader
     from data.datawrangler import DataWrangler
     from simulation.cartsetup import CartSetup
@@ -23,7 +24,7 @@ try:
     from models.deploy import DeployModel
     from schemas import DummyMachine
 except:
-    from src.data.dataloader import DataLoader
+    from src.data.dataloader import DataLoader, DataBaseLoader
     from src.data.datawrangler import MachineDataLoader
     from src.data.datawrangler import DataWrangler
     from src.simulation.cartsetup import CartSetup
@@ -66,10 +67,15 @@ def root(response: Response, request: Request):
 def startSimulation(productId: str, dummyMachine: DummyMachine, response: Response):
     """endpoint to calculate the coating time for a given product"""
     # replace this with Database lookup
-    path = Path(
-        os.getcwd() + os.path.normpath("/data/programms/" + productId + "/" + "/m20")
-    )
-    data = DataLoader(path)
+    if exists(os.getcwd() + "/products.db"):
+        engine = create_engine("sqlite:///products.db", echo=False)
+        data = DataBaseLoader(engine, productId, "m20")
+    else:
+        path = Path(
+            os.getcwd()
+            + os.path.normpath("/data/programms/" + productId + "/" + "/m20")
+        )
+        data = DataLoader(path)
     machine = Machine(dummyMachine)
     manufacturing = Manufacturing(data(), machine)
     simulationData = manufacturing.coating()
@@ -82,11 +88,17 @@ def startSimulation(
 ):
     """endpoint to calculate the manufacturing time for a given product"""
     # replace this with Database lookup
-    path = Path(
-        os.getcwd()
-        + os.path.normpath("/data/programms/" + productId + "/" + dummyMachine.machine)
-    )
-    data = DataLoader(path)
+    if exists(os.getcwd() + "/products.db"):
+        engine = create_engine("sqlite:///products.db", echo=False)
+        data = DataBaseLoader(engine, productId, dummyMachine.machine)
+    else:
+        path = Path(
+            os.getcwd()
+            + os.path.normpath(
+                "/data/programms/" + productId + "/" + dummyMachine.machine
+            )
+        )
+        data = DataLoader(path)
     machine = Machine(dummyMachine)
     try:
         manufacturing = Manufacturing(data(), machine)
@@ -104,11 +116,17 @@ def startSimulation(
 ):
     """endpoint to calculate the manufacturing time for a given product"""
     # replace this with Database lookup
-    path = Path(
-        os.getcwd()
-        + os.path.normpath("/data/programms/" + productId + "/" + dummyMachine.machine)
-    )
-    data = DataLoader(path)
+    if exists(os.getcwd() + "/products.db"):
+        engine = create_engine("sqlite:///products.db", echo=False)
+        data = DataBaseLoader(engine, productId, dummyMachine.machine)
+    else:
+        path = Path(
+            os.getcwd()
+            + os.path.normpath(
+                "/data/programms/" + productId + "/" + dummyMachine.machine
+            )
+        )
+        data = DataLoader(path)
     machine = Machine(dummyMachine)
     try:
         data = data()
@@ -181,8 +199,17 @@ def getOptions():
     """endpoint to get all available programms"""
     # replace with DB lookup for all possible programms
     path = Path(os.getcwd() + os.path.normpath("/data/programms"))
+    if exists(os.getcwd() + "/products.db"):
+        engine = create_engine("sqlite:///products.db", echo=False)
+        dbData = engine.execute("SELECT * FROM 'products'").fetchall()
+        data = []
+        for i in dbData:
+            data.append(i[1])
+        data = {"programms": data}
+    else:
+        data = {"programms": os.listdir(path)}
 
-    return {"programms": os.listdir(path)}
+    return data
 
 
 if __name__ == "__main__":
