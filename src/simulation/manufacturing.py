@@ -427,3 +427,17 @@ class Manufacturing:
         path_length = math.sqrt(vector_AB[0] ** 2 + vector_AB[1] ** 2)
         # calculate the travel time and return it
         return path_length / velocity
+
+    def getPlots(self):
+        plot_x = []
+        plot_y = []
+        x = self.data["X"].to_numpy()
+        y = self.data["Y"].to_numpy()
+        for offset in self.offsets:
+            plot_x.append((x + offset[0]).tolist())
+            plot_y.append((y + offset[1]).tolist())
+
+        plot_x, plot_y = list(itertools.chain.from_iterable(plot_x)), list(
+            itertools.chain.from_iterable(plot_y)
+        )
+        return plot_x, plot_y
