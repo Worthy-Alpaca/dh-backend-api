@@ -27,8 +27,10 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import os
+import sqlalchemy
 import pandas as pd
 from pathlib import Path
+from sqlalchemy import create_engine
 
 
 class DataLoader:
@@ -199,12 +201,39 @@ class DataLoader:
         return (data, components, offsetlist)
 
 
+class DataBaseLoader:
+    def __init__(
+        self, dataBase: sqlalchemy.engine.base.Engine, product: str, machine: str
+    ) -&gt; None:
+        &#34;&#34;&#34;Load the required Data from the ``products.db`` database.
+
+        Args:
+            dataBase (sqlalchemy.engine.base.Engine): The current database connection.
+            product (str): The current product name.
+            machine (str): The current machine name.
+        &#34;&#34;&#34;
+        with dataBase.begin() as connection:
+            tableName = f&#34;{product}_{machine}_data&#34;
+            self.data = pd.read_sql_table(tableName, connection)
+            tableName = f&#34;{product}_{machine}_components&#34;
+            self.components = pd.read_sql_table(tableName, connection)
+            tableName = f&#34;{product}_{machine}_offsets&#34;
+            offsets = pd.read_sql_table(tableName, connection)
+            offsetList = []
+            for i, r in offsets.iterrows():
+                currentOffset = (r.x, r.y)
+                offsetList.append(currentOffset)
+            self.offsets = offsetList
+
+    def __call__(self):
+        return (self.data, self.components, self.offsets)
+
+
 if __name__ == &#34;__main__&#34;:
-    path = Path(os.getcwd() + os.path.normpath(&#34;/data/24aarab&#34;))
-    dataloader = DataLoader(path, separator=&#34;,&#34;)
-    data = dataloader()
-    FL = data[1]  # .loc[data[1][&#39;FeedStyle&#39;] == &#39;ST-FL&#39;]
-    FL  # .duplicated()</code></pre>
+    engine = create_engine(&#34;sqlite:///products.db&#34;, echo=False)
+    data = DataBaseLoader(engine, &#34;24AARAB&#34;, &#34;m20&#34;)
+    data, components, offsets = data()
+    print()</code></pre>
 </details>
 </section>
 <section>
@@ -216,6 +245,53 @@ if __name__ == &#34;__main__&#34;:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="src.data.dataloader.DataBaseLoader"><code class="flex name class">
+<span>class <span class="ident">DataBaseLoader</span></span>
+<span>(</span><span>dataBase: sqlalchemy.engine.base.Engine, product: str, machine: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Load the required Data from the <code>products.db</code> database.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>dataBase</code></strong> :&ensp;<code>sqlalchemy.engine.base.Engine</code></dt>
+<dd>The current database connection.</dd>
+<dt><strong><code>product</code></strong> :&ensp;<code>str</code></dt>
+<dd>The current product name.</dd>
+<dt><strong><code>machine</code></strong> :&ensp;<code>str</code></dt>
+<dd>The current machine name.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataBaseLoader:
+    def __init__(
+        self, dataBase: sqlalchemy.engine.base.Engine, product: str, machine: str
+    ) -&gt; None:
+        &#34;&#34;&#34;Load the required Data from the ``products.db`` database.
+
+        Args:
+            dataBase (sqlalchemy.engine.base.Engine): The current database connection.
+            product (str): The current product name.
+            machine (str): The current machine name.
+        &#34;&#34;&#34;
+        with dataBase.begin() as connection:
+            tableName = f&#34;{product}_{machine}_data&#34;
+            self.data = pd.read_sql_table(tableName, connection)
+            tableName = f&#34;{product}_{machine}_components&#34;
+            self.components = pd.read_sql_table(tableName, connection)
+            tableName = f&#34;{product}_{machine}_offsets&#34;
+            offsets = pd.read_sql_table(tableName, connection)
+            offsetList = []
+            for i, r in offsets.iterrows():
+                currentOffset = (r.x, r.y)
+                offsetList.append(currentOffset)
+            self.offsets = offsetList
+
+    def __call__(self):
+        return (self.data, self.components, self.offsets)</code></pre>
+</details>
+</dd>
 <dt id="src.data.dataloader.DataLoader"><code class="flex name class">
 <span>class <span class="ident">DataLoader</span></span>
 <span>(</span><span>data_folder: pathlib.Path, separator: str = ',')</span>
@@ -419,6 +495,9 @@ if __name__ == &#34;__main__&#34;:
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
+<li>
+<h4><code><a title="src.data.dataloader.DataBaseLoader" href="#src.data.dataloader.DataBaseLoader">DataBaseLoader</a></code></h4>
+</li>
 <li>
 <h4><code><a title="src.data.dataloader.DataLoader" href="#src.data.dataloader.DataLoader">DataLoader</a></code></h4>
 </li>

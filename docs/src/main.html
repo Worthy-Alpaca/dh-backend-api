@@ -32,6 +32,7 @@ import sys
 import uvicorn
 import numpy as np
 from pathlib import Path
+from sqlalchemy import create_engine
 from fastapi import FastAPI, Response, status, Request
 from os.path import exists
 
@@ -42,7 +43,7 @@ SCRIPT_DIR = os.path.dirname(
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 
 try:
-    from data.dataloader import DataLoader
+    from data.dataloader import DataLoader, DataBaseLoader
     from data.datawrangler import MachineDataLoader
     from data.datawrangler import DataWrangler
     from simulation.cartsetup import CartSetup
@@ -51,7 +52,7 @@ try:
     from models.deploy import DeployModel
     from schemas import DummyMachine
 except:
-    from src.data.dataloader import DataLoader
+    from src.data.dataloader import DataLoader, DataBaseLoader
     from src.data.datawrangler import MachineDataLoader
     from src.data.datawrangler import DataWrangler
     from src.simulation.cartsetup import CartSetup
@@ -94,10 +95,15 @@ def root(response: Response, request: Request):
 def startSimulation(productId: str, dummyMachine: DummyMachine, response: Response):
     &#34;&#34;&#34;endpoint to calculate the coating time for a given product&#34;&#34;&#34;
     # replace this with Database lookup
-    path = Path(
-        os.getcwd() + os.path.normpath(&#34;/data/programms/&#34; + productId + &#34;/&#34; + &#34;/m20&#34;)
-    )
-    data = DataLoader(path)
+    if exists(os.getcwd() + &#34;/products.db&#34;):
+        engine = create_engine(&#34;sqlite:///products.db&#34;, echo=False)
+        data = DataBaseLoader(engine, productId, &#34;m20&#34;)
+    else:
+        path = Path(
+            os.getcwd()
+            + os.path.normpath(&#34;/data/programms/&#34; + productId + &#34;/&#34; + &#34;/m20&#34;)
+        )
+        data = DataLoader(path)
     machine = Machine(dummyMachine)
     manufacturing = Manufacturing(data(), machine)
     simulationData = manufacturing.coating()
@@ -110,11 +116,17 @@ def startSimulation(
 ):
     &#34;&#34;&#34;endpoint to calculate the manufacturing time for a given product&#34;&#34;&#34;
     # replace this with Database lookup
-    path = Path(
-        os.getcwd()
-        + os.path.normpath(&#34;/data/programms/&#34; + productId + &#34;/&#34; + dummyMachine.machine)
-    )
-    data = DataLoader(path)
+    if exists(os.getcwd() + &#34;/products.db&#34;):
+        engine = create_engine(&#34;sqlite:///products.db&#34;, echo=False)
+        data = DataBaseLoader(engine, productId, dummyMachine.machine)
+    else:
+        path = Path(
+            os.getcwd()
+            + os.path.normpath(
+                &#34;/data/programms/&#34; + productId + &#34;/&#34; + dummyMachine.machine
+            )
+        )
+        data = DataLoader(path)
     machine = Machine(dummyMachine)
     try:
         manufacturing = Manufacturing(data(), machine)
@@ -132,11 +144,17 @@ def startSimulation(
 ):
     &#34;&#34;&#34;endpoint to calculate the manufacturing time for a given product&#34;&#34;&#34;
     # replace this with Database lookup
-    path = Path(
-        os.getcwd()
-        + os.path.normpath(&#34;/data/programms/&#34; + productId + &#34;/&#34; + dummyMachine.machine)
-    )
-    data = DataLoader(path)
+    if exists(os.getcwd() + &#34;/products.db&#34;):
+        engine = create_engine(&#34;sqlite:///products.db&#34;, echo=False)
+        data = DataBaseLoader(engine, productId, dummyMachine.machine)
+    else:
+        path = Path(
+            os.getcwd()
+            + os.path.normpath(
+                &#34;/data/programms/&#34; + productId + &#34;/&#34; + dummyMachine.machine
+            )
+        )
+        data = DataLoader(path)
     machine = Machine(dummyMachine)
     try:
         data = data()
@@ -209,8 +227,17 @@ def getOptions():
     &#34;&#34;&#34;endpoint to get all available programms&#34;&#34;&#34;
     # replace with DB lookup for all possible programms
     path = Path(os.getcwd() + os.path.normpath(&#34;/data/programms&#34;))
+    if exists(os.getcwd() + &#34;/products.db&#34;):
+        engine = create_engine(&#34;sqlite:///products.db&#34;, echo=False)
+        dbData = engine.execute(&#34;SELECT * FROM &#39;products&#39;&#34;).fetchall()
+        data = []
+        for i in dbData:
+            data.append(i[1])
+        data = {&#34;programms&#34;: data}
+    else:
+        data = {&#34;programms&#34;: os.listdir(path)}
 
-    return {&#34;programms&#34;: os.listdir(path)}
+    return data
 
 
 if __name__ == &#34;__main__&#34;:
@@ -265,8 +292,17 @@ def getOptions():
     &#34;&#34;&#34;endpoint to get all available programms&#34;&#34;&#34;
     # replace with DB lookup for all possible programms
     path = Path(os.getcwd() + os.path.normpath(&#34;/data/programms&#34;))
+    if exists(os.getcwd() + &#34;/products.db&#34;):
+        engine = create_engine(&#34;sqlite:///products.db&#34;, echo=False)
+        dbData = engine.execute(&#34;SELECT * FROM &#39;products&#39;&#34;).fetchall()
+        data = []
+        for i in dbData:
+            data.append(i[1])
+        data = {&#34;programms&#34;: data}
+    else:
+        data = {&#34;programms&#34;: os.listdir(path)}
 
-    return {&#34;programms&#34;: os.listdir(path)}</code></pre>
+    return data</code></pre>
 </details>
 </dd>
 <dt id="src.main.predictOrder"><code class="name flex">
@@ -356,11 +392,17 @@ def startSimulation(
 ):
     &#34;&#34;&#34;endpoint to calculate the manufacturing time for a given product&#34;&#34;&#34;
     # replace this with Database lookup
-    path = Path(
-        os.getcwd()
-        + os.path.normpath(&#34;/data/programms/&#34; + productId + &#34;/&#34; + dummyMachine.machine)
-    )
-    data = DataLoader(path)
+    if exists(os.getcwd() + &#34;/products.db&#34;):
+        engine = create_engine(&#34;sqlite:///products.db&#34;, echo=False)
+        data = DataBaseLoader(engine, productId, dummyMachine.machine)
+    else:
+        path = Path(
+            os.getcwd()
+            + os.path.normpath(
+                &#34;/data/programms/&#34; + productId + &#34;/&#34; + dummyMachine.machine
+            )
+        )
+        data = DataLoader(path)
     machine = Machine(dummyMachine)
     try:
         data = data()

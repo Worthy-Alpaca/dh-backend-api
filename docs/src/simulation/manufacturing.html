@@ -454,7 +454,21 @@ class Manufacturing:
         # calculate the length of the connection vector
         path_length = math.sqrt(vector_AB[0] ** 2 + vector_AB[1] ** 2)
         # calculate the travel time and return it
-        return path_length / velocity</code></pre>
+        return path_length / velocity
+
+    def getPlots(self):
+        plot_x = []
+        plot_y = []
+        x = self.data[&#34;X&#34;].to_numpy()
+        y = self.data[&#34;Y&#34;].to_numpy()
+        for offset in self.offsets:
+            plot_x.append((x + offset[0]).tolist())
+            plot_y.append((y + offset[1]).tolist())
+
+        plot_x, plot_y = list(itertools.chain.from_iterable(plot_x)), list(
+            itertools.chain.from_iterable(plot_y)
+        )
+        return plot_x, plot_y</code></pre>
 </details>
 </section>
 <section>
@@ -883,7 +897,21 @@ class Manufacturing:
         # calculate the length of the connection vector
         path_length = math.sqrt(vector_AB[0] ** 2 + vector_AB[1] ** 2)
         # calculate the travel time and return it
-        return path_length / velocity</code></pre>
+        return path_length / velocity
+
+    def getPlots(self):
+        plot_x = []
+        plot_y = []
+        x = self.data[&#34;X&#34;].to_numpy()
+        y = self.data[&#34;Y&#34;].to_numpy()
+        for offset in self.offsets:
+            plot_x.append((x + offset[0]).tolist())
+            plot_y.append((y + offset[1]).tolist())
+
+        plot_x, plot_y = list(itertools.chain.from_iterable(plot_x)), list(
+            itertools.chain.from_iterable(plot_y)
+        )
+        return plot_x, plot_y</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -1222,6 +1250,30 @@ class Manufacturing:
     return math.sqrt(0**2 + high**2) / velocity</code></pre>
 </details>
 </dd>
+<dt id="src.simulation.manufacturing.Manufacturing.getPlots"><code class="name flex">
+<span>def <span class="ident">getPlots</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getPlots(self):
+    plot_x = []
+    plot_y = []
+    x = self.data[&#34;X&#34;].to_numpy()
+    y = self.data[&#34;Y&#34;].to_numpy()
+    for offset in self.offsets:
+        plot_x.append((x + offset[0]).tolist())
+        plot_y.append((y + offset[1]).tolist())
+
+    plot_x, plot_y = list(itertools.chain.from_iterable(plot_x)), list(
+        itertools.chain.from_iterable(plot_y)
+    )
+    return plot_x, plot_y</code></pre>
+</details>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -1245,6 +1297,7 @@ class Manufacturing:
 <ul class="">
 <li><code><a title="src.simulation.manufacturing.Manufacturing.calcTime" href="#src.simulation.manufacturing.Manufacturing.calcTime">calcTime</a></code></li>
 <li><code><a title="src.simulation.manufacturing.Manufacturing.coating" href="#src.simulation.manufacturing.Manufacturing.coating">coating</a></code></li>
+<li><code><a title="src.simulation.manufacturing.Manufacturing.getPlots" href="#src.simulation.manufacturing.Manufacturing.getPlots">getPlots</a></code></li>
 </ul>
 </li>
 </ul>
